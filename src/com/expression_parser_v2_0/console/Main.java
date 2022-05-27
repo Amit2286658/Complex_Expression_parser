@@ -1,14 +1,12 @@
 package com.expression_parser_v2_0.console;
 
 import java.util.ArrayList;
-import java.util.Scanner;
 //no inheritance.
 public final class Main {
     //no instance creation.
     private Main(){
         //empty private constructor.
     }
-
     /*
     *my keyboard got smacked last night because something happened..., never mind, these keys
     *don't work any longer, and I'm keeping it here just so that I don't have to open
@@ -43,15 +41,6 @@ public final class Main {
 
     private static ArrayList<operationsInterface> operations = new ArrayList<>();
     private static ArrayList<functionsInterface> functions = new ArrayList<>();
-
-    public static void main(String[] args) {
-	// write your code here, no?
-        Scanner scn = new Scanner(System.in);
-        String expression = scn.nextLine();
-        registerLibraries();
-        String str = Evaluate(expression);
-        System.out.println(str);
-    }
 
     public static final int
             IOTA_FIRST = 1,
@@ -103,12 +92,6 @@ public final class Main {
         double getDoubleResult();
         ComplexNumber getComplexResult();
         void function(Argument[] arguments, int id);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void registerLibraries(){
-        Operational_Library.values();
-        Functional_Library.values();
     }
 
     public static void registerOperation(operationsInterface opInt){
