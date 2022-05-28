@@ -56,6 +56,7 @@ public final class Main {
             ARGUMENT_IOTA = 2,
             ARGUMENT_COMPLEX = 3,
             ARGUMENT_STRING = 4,
+            ARGUMENT_ARRAY = 5,
             TYPE_PRE = 0,
             TYPE_POST = 1,
             TYPE_BOTH = 2,
@@ -111,9 +112,9 @@ public final class Main {
         expression = EvaluateFunction(expression);
         expression = GeneralParser(expression);
         expression = implicitSolver(expression);
-        System.out.println("implicitly solved : " + expression);
+        //System.out.println("implicitly solved : " + expression);
         expression = converter(expression);
-        System.out.println("complex converted expression : " + expression);
+        //System.out.println("complex converted expression : " + expression);
         expression = BracketsResolver(expression);
         expression = EvaluateOperation(expression);
         return SortResult(expression);
@@ -955,46 +956,113 @@ public final class Main {
     // will not resolve any problems.
     private static String functionDispatcher(String sub_expression, functionsInterface fs){
         int[] map = fs.getFunctionMap();
-        Argument[] arguments = new Argument[map.length];
+        Argument[] arguments;
 
         String[] items = sub_expression.split(",");
 
-        if (map.length != items.length)
-            throw new IllegalArgumentException("the given arguments does not match the method parameter map");
+        boolean isArray = false;
 
-        for (int i = 0; i < map.length; i++){
-            int id = map[i];
-            switch (id){
-                case ARGUMENT_DOUBLE :
-                    try {
-                        double real = Double.parseDouble(Evaluate(items[i]));
-                        arguments[i] = new Argument(real, null, null);
-                    }catch(NumberFormatException e){
-                        throw new IllegalArgumentException("the given double is not parsable");
-                    }
-                    break;
-                case ARGUMENT_IOTA :
-                    try {
-                        double iota = Double.parseDouble(Evaluate(items[i]).replaceAll("i", ""));
-                        arguments[i] = new Argument(iota, null, null);
-                    }catch(NumberFormatException e){
-                        throw new IllegalArgumentException("the given double is not parsable");
-                    }
-                    break;
-                case ARGUMENT_COMPLEX :
-                    try {
-                        ComplexNumber cn = convertToComplexNumber(Evaluate(items[i]));
-                        if (cn.real == 0 && cn.iota != 0)
-                            throw new NumberFormatException("the given complex number is in fact an isolated iota");
-                        arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(items[i])), null);
-                    }catch(Exception e){
-                        throw new IllegalArgumentException("the given complex number is not correct");
-                    }
-                    break;
-                case ARGUMENT_STRING :
-                    arguments[i] = new Argument(0, null, items[i]);
-                    break;
-                default : break;
+        if (map[0] == ARGUMENT_ARRAY){
+            if (map.length != 2)
+                throw new ExpressionException("the functions that expects an array can only accept one type" +
+                        " of argument, in this case, the map declaration can only have two types," +
+                        " the first declaring it an array and the second being the type," +
+                        " whose array is being expected");
+            isArray = true;
+        }
+
+        arguments = new Argument[isArray ? items.length : map.length];
+
+        if (!isArray) {
+            if (map.length != items.length)
+                throw new IllegalArgumentException("the given arguments does not match the method parameter map");
+            for (int i = 0; i < map.length; i++) {
+                int id = map[i];
+                switch (id) {
+                    case ARGUMENT_DOUBLE:
+                        try {
+                            double real = Double.parseDouble(Evaluate(items[i]));
+                            arguments[i] = new Argument(real, null, null);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("the given double is not parsable");
+                        }
+                        break;
+                    case ARGUMENT_IOTA:
+                        try {
+                            String imag = Evaluate(items[i]);
+                            double iota;
+                            if (imag.contains("i"))
+                                iota = Double.parseDouble(imag.replaceAll("i", ""));
+                            else
+                                throw new NumberFormatException();
+                            arguments[i] = new Argument(iota, null, null);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("the given double is not parsable");
+                        }
+                        break;
+                    case ARGUMENT_COMPLEX:
+                        try {
+                            ComplexNumber cn = convertToComplexNumber(Evaluate(items[i]));
+                            if (cn.real == 0 || cn.iota == 0)
+                                throw new NumberFormatException("the given complex number is in fact a number");
+                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(items[i])), null);
+                        } catch (Exception e) {
+                            throw new IllegalArgumentException("the given complex number is not correct");
+                        }
+                        break;
+                    case ARGUMENT_STRING:
+                        arguments[i] = new Argument(0, null, items[i]);
+                        break;
+                    case ARGUMENT_ARRAY :
+                        throw new ExpressionException("the array declaration must be the first element");
+                    default:
+                        break;
+                }
+            }
+        }else {
+            int type = map[1];
+            for (int i = 0; i < items.length; i++){
+                switch(type){
+                    case ARGUMENT_DOUBLE:
+                        try {
+                            double real = Double.parseDouble(Evaluate(items[i]));
+                            arguments[i] = new Argument(real, null, null);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("the given double is not parsable");
+                        }
+                        break;
+                    case ARGUMENT_IOTA:
+                        try {
+                            String imag = Evaluate(items[i]);
+                            double iota;
+                            if (imag.contains("i"))
+                                iota = Double.parseDouble(imag.replaceAll("i", ""));
+                            else
+                                throw new NumberFormatException();
+                            arguments[i] = new Argument(iota, null, null);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("the given double is not parsable");
+                        }
+                        break;
+                    case ARGUMENT_COMPLEX:
+                        try {
+                            ComplexNumber cn = convertToComplexNumber(Evaluate(items[i]));
+                            if (cn.real == 0 || cn.iota == 0)
+                                throw new NumberFormatException("the given complex number is in fact a number");
+                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(items[i])), null);
+                        } catch (Exception e) {
+                            throw new IllegalArgumentException("the given double is not parsable");
+                        }
+                        break;
+                    case ARGUMENT_STRING:
+                        arguments[i] = new Argument(0, null, items[i]);
+                        break;
+                    case ARGUMENT_ARRAY :
+                        throw new ExpressionException("the array declaration must be the first" +
+                                " and only element of its kind");
+                    default:
+                        break;
+                }
             }
         }
 
@@ -1225,10 +1293,6 @@ public final class Main {
     private static String convertComplexToString(ComplexNumber cn){
         return complex_token + "" + cn.real + (cn.is_neutral ? String.valueOf(neutral_token) : "") +
                 (cn.iota >= 0 ? "+" : "") + cn.iota + "i" + complex_token;
-    }
-
-    public static void setUseDegree(boolean useDegree){
-        use_degree = useDegree;
     }
 
     static class ComplexNumber {

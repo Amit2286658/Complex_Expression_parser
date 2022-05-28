@@ -7,7 +7,9 @@ public enum Functional_Library implements functionsInterface{
     SIN2("sin", new int[]{ARGUMENT_COMPLEX}, 2),
     SIN3("sin", new int[]{ARGUMENT_IOTA}, 3),
     COS1("cos", new int[]{ARGUMENT_DOUBLE}, 1),
-    COS2("cos", new int[]{ARGUMENT_COMPLEX}, 2);
+    COS2("cos", new int[]{ARGUMENT_COMPLEX}, 2),
+    MIN1("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_DOUBLE}, 1),
+    MIN2("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_IOTA}, 2);
 
     String name;
     int[] functionMap;
@@ -72,6 +74,17 @@ public enum Functional_Library implements functionsInterface{
                     System.out.println("case 3 is called");
                     break;
             }
+        }else if (name.equals("min")){
+            resultFlag = RESULT_REAL;
+            switch(id){
+                case 1 :
+                    System.out.println("double list : " + arguments.length);
+                    break;
+                case 2 :
+                    System.out.println("iota list : " + arguments.length);
+                    break;
+            }
+
         }
     }
 }
