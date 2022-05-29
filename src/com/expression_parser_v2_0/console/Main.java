@@ -902,6 +902,10 @@ public final class Main {
                     whichOperation.function(c1r, c2r, IOTA_NONE);
                 else if (c1r == 0 && c1i == 0 && c2r != 0 && c2i == 0)
                     whichOperation.function(c1r, c2r, IOTA_NONE);
+                else if (c1r == 0 && c1i != 0 && c2r == 0 && c2i == 0)
+                    whichOperation.function(c1i, c2r, IOTA_FIRST);
+                else if (c1r == 0 && c1i == 0 && c2r == 0 && c2i != 0)
+                    whichOperation.function(c1r, c2i, IOTA_SECOND);
                 else if (c1r == 0 && c1i == 0 && c2r != 0 && c2i != 0)
                     whichOperation.function(c1, c2);
                 else if (c1r != 0 && c1i != 0 && c2r == 0 && c2i == 0)

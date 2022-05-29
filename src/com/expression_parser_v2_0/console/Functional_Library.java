@@ -9,7 +9,8 @@ public enum Functional_Library implements functionsInterface{
     COS1("cos", new int[]{ARGUMENT_DOUBLE}, 1),
     COS2("cos", new int[]{ARGUMENT_COMPLEX}, 2),
     MIN1("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_DOUBLE}, 1),
-    MIN2("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_IOTA}, 2);
+    MIN2("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_IOTA}, 2),
+    MIN3("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_COMPLEX}, 3);
 
     String name;
     int[] functionMap;
@@ -85,6 +86,8 @@ public enum Functional_Library implements functionsInterface{
                     break;
             }
 
+        }else if (name.equals("test")){
+            System.out.println("test is called");
         }
     }
 }
