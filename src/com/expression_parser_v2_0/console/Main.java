@@ -109,6 +109,9 @@ public final class Main {
         if (expression.length() == 0)
             throw new IllegalArgumentException("given input string is empty");
 
+
+        expression = expression.replaceAll("\\s+", "");
+
         expression = EvaluateFunction(expression);
         expression = GeneralParser(expression);
         expression = implicitSolver(expression);
@@ -237,7 +240,8 @@ public final class Main {
                 int precedence2 = whichOperator.getPrecedence();
 
                 if (precedence1 >= precedence2 && (ops.pullFirst().getType() != TYPE_POST &&
-                        whichOperator.getType() != TYPE_POST)){
+                        whichOperator.getType() != TYPE_POST &&
+                        ops.pullFirst().getOperator() != whichOperator.getOperator())){
                     ComplexNumber cn = dispatcher(operand.pull(0), operand.pull(1), ops.pullFirst());
                     operand.popAll();
                     ops.popAll();
@@ -284,7 +288,6 @@ public final class Main {
     //general parser to resolve minor errors in a string.
     private static String GeneralParser(String expression){
         expression = expression.trim();
-        expression = expression.replaceAll("\\s+", "");
         expression = expression.replaceAll("\\)\\(", "\\)*\\(");
         expression = expression.replaceAll("\\+\\+", "\\+");
         expression = expression.replaceAll("\\+-", "-");
@@ -734,8 +737,8 @@ public final class Main {
                             case TYPE_CONSTANT :
                                 if (precedence_current >= precedence_right)
                                     throw new ExpressionException("the right operator has type constant however has" +
-                                            " less than or equal to the precedence of the left operator which has type " +
-                                            "post");
+                                            " less than or equal to the precedence of the" +
+                                            " left operator which has type post");
                                 else
                                     return opInt.getOperator() + "";
                         }
@@ -832,11 +835,14 @@ public final class Main {
                                 if (right_operator.getOperator() == '+' || right_operator.getOperator() == '-')
                                     return opInt.getOperator() + "";
                             case TYPE_PRE :
-                                throw new ExpressionException("the right operator is of type both and the left operator" +
-                                        " is of type post, an operand in between is required regardless of the precedence");
+                                throw new ExpressionException("the right operator is of" +
+                                        " type both and the left operator" +
+                                        " is of type post, an operand in between is" +
+                                        " required regardless of the precedence");
                             case TYPE_POST :
                                 if (precedence_current > precedence_right)
-                                    throw new ExpressionException("the left and right operator, both is of type post, " +
+                                    throw new ExpressionException("the left and right operator, " +
+                                            "both is of type post, " +
                                             "but the left operator has a greater precedence.");
                                 break;
                             case TYPE_CONSTANT :
