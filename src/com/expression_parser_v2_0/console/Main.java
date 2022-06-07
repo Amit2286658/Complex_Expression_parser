@@ -239,15 +239,34 @@ public final class Main {
                 int precedence1 = ops.pullFirst().getPrecedence();
                 int precedence2 = whichOperator.getPrecedence();
 
-                if (precedence1 >= precedence2 && (ops.pullFirst().getType() != TYPE_POST &&
-                        whichOperator.getType() != TYPE_POST &&
-                        ops.pullFirst().getOperator() != whichOperator.getOperator())){
+                if (precedence1 > precedence2){
                     ComplexNumber cn = dispatcher(operand.pull(0), operand.pull(1), ops.pullFirst());
                     operand.popAll();
                     ops.popAll();
 
                     operand.push(cn);
                     ops.push(whichOperator);
+                }else if (precedence1 == precedence2){
+                    if (ops.pullFirst().getOperator() == whichOperator.getOperator() &&
+                            whichOperator.getType() == TYPE_POST){
+                        ComplexNumber cn = operand.pull(1);
+                        String str = convertComplexToString(operand.pullFirst());
+                        builder.append(str);
+                        builder.append(ops.pullFirst().getOperator());
+
+                        operand.popAll();
+                        ops.popAll();
+
+                        operand.push(cn);
+                        ops.push(whichOperator);
+                    }else{
+                        ComplexNumber cn = dispatcher(operand.pull(0), operand.pull(1), ops.pullFirst());
+                        operand.popAll();
+                        ops.popAll();
+
+                        operand.push(cn);
+                        ops.push(whichOperator);
+                    }
                 }else{
                     ComplexNumber cn = operand.pull(1);
                     String str = convertComplexToString(operand.pullFirst());
@@ -445,6 +464,7 @@ public final class Main {
         expression = builder.toString();
         builder.setLength(0);
 
+        //convert each number into a complex number
         outer_loop :
         for (int i = 0; i < expression.length(); i++){
             String c = String.valueOf(expression.charAt(i));

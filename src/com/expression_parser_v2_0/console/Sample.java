@@ -9,8 +9,11 @@ public class Sample {
         Scanner scn = new Scanner(System.in);
         String expression = scn.nextLine();
         registerLibraries();
+        double time1 = System.nanoTime();
         String str = Evaluate(expression);
+        double time2 = System.nanoTime();
         System.out.println(str);
+        System.out.println("time taken : " + (time2 - time1)/1000000 + " ms");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
