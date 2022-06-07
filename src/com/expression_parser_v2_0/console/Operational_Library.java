@@ -4,12 +4,12 @@ import static com.expression_parser_v2_0.console.Main.*;
 
 public enum Operational_Library implements operationsInterface {
 
-    MULTIPLY('*', 2, "x, multiply"),
-    ADD('+', 1, "plus, add"),
-    SUBTRACT('-', 1, "minus, subtract"),
-    FACTORIAL('!', 3, "factorial", TYPE_PRE),
-    ROOT('√', 3, "root", TYPE_POST),
-    NATURAL_LOG_BASE(';', 4, "natural_log_base, ln", TYPE_CONSTANT);
+    MULTIPLY('*', PRECEDENCE_MEDIUM, "x, multiply"),
+    ADD('+', PRECEDENCE_LEAST, "plus, add"),
+    SUBTRACT('-', PRECEDENCE_LEAST, "minus, subtract"),
+    FACTORIAL('!', PRECEDENCE_MEDIUM + 1, "factorial", TYPE_PRE),
+    ROOT('√', PRECEDENCE_MEDIUM + 1, "root", TYPE_POST),
+    NATURAL_LOG_BASE(';', PRECEDENCE_MAX, "natural_log_base, ln", TYPE_CONSTANT);
 
 
     private char operator;

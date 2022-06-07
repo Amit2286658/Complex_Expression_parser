@@ -62,7 +62,10 @@ public final class Main {
             TYPE_BOTH = 2,
             TYPE_CONSTANT = 3,
             ANGLE_MODE_RADIAN = 0,
-            ANGLE_MODE_DEGREE = 1;
+            ANGLE_MODE_DEGREE = 1,
+            PRECEDENCE_LEAST = 1,
+            PRECEDENCE_MEDIUM = 100,
+            PRECEDENCE_MAX = 500;
 
     private static final int
             NEUTRAL_IDENTITY = 1;
