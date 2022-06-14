@@ -1,5 +1,8 @@
 package com.expression_parser_v2_0.console;
 
+/*
+*todo : create a new branch and commit the project there, do not merge into the master branch yet.*/
+
 import java.util.ArrayList;
 //no inheritance.
 public final class Main {
@@ -34,10 +37,9 @@ public final class Main {
             throw new IllegalArgumentException("unknown angle mode");
     }
 
-    private static char
+    private static final char
             complex_token = '$',
-            function_token = '@',
-            neutral_token = '#';
+            function_token = '@';
 
     private static ArrayList<operationsInterface> operations = new ArrayList<>();
     private static ArrayList<functionsInterface> functions = new ArrayList<>();
@@ -66,10 +68,6 @@ public final class Main {
             PRECEDENCE_LEAST = 1,
             PRECEDENCE_MEDIUM = 100,
             PRECEDENCE_MAX = 500;
-
-    private static final int
-            NEUTRAL_IDENTITY = 1;
-
 
     public interface operationsInterface {
         String[] getOperationNames();
@@ -118,11 +116,9 @@ public final class Main {
         expression = EvaluateFunction(expression);
         expression = GeneralParser(expression);
         expression = implicitSolver(expression);
-        //System.out.println("implicitly solved : " + expression);
-        expression = converter(expression);
-        //System.out.println("complex converted expression : " + expression);
-        expression = BracketsResolver(expression);
-        expression = EvaluateOperation(expression);
+        expression = complexConverter(expression);
+        expression = postFixConverter(expression);
+        expression = postFixEvaluator(expression);
         return SortResult(expression);
     }
 
@@ -190,16 +186,17 @@ public final class Main {
             builder.setLength(0);
         }
         return expression;
-
     }
 
     //it only deals with the properly formatted string, it does not resolve any errors in the string.
+    //keep it around for future testing related uses.
+    @Deprecated
     private static String EvaluateOperation(String expression){
         if (operations.isEmpty())
             return expression;
 
-        Stack<ComplexNumber> operand = new Stack<>(2);
-        Stack<operationsInterface> ops = new Stack<>(1);
+        LazyStack<ComplexNumber> operand = new LazyStack<>(2);
+        LazyStack<operationsInterface> ops = new LazyStack<>(1);
 
         boolean tokenCounter = false;
         StringBuilder complexString = new StringBuilder();
@@ -378,6 +375,7 @@ public final class Main {
         return expression;
     }
 
+    @Deprecated
     private static String BracketsResolver(String expression){
         if (!expression.contains("(") && !expression.contains(")"))
             return expression;
@@ -423,12 +421,12 @@ public final class Main {
         return expression;
     }
 
-    private static String converter(String expression){
+    private static String complexConverter(String expression){
         StringBuilder builder = new StringBuilder();
         StringBuilder currentStep = new StringBuilder();
 
         //convert each operator into a binary operator.
-        operationsInterface last_ops = null;
+        /*operationsInterface last_ops = null;
         for (int i = 0; i < expression.length(); i++){
             char c = expression.charAt(i);
 
@@ -465,16 +463,16 @@ public final class Main {
             }
         }
         expression = builder.toString();
-        builder.setLength(0);
+        builder.setLength(0);*/
 
         //convert each number into a complex number
-        outer_loop :
+        //outer_loop :
         for (int i = 0; i < expression.length(); i++){
             String c = String.valueOf(expression.charAt(i));
             if (c.matches("[1234567890.#iIeE]")){
                 currentStep.append(c);
             }else{
-                if (c.matches("[+-]")){
+                /*if (c.matches("[+-]")){
                     char p;
                     if (i != 0) {
                         p = expression.charAt(i - 1);
@@ -495,13 +493,11 @@ public final class Main {
                         currentStep.append(c);
                         continue;
                     }
-                }
+                }*/
                 if (!currentStep.toString().equals("")){
                     if (currentStep.toString().contains("i")){
                         builder.append(convertToComplexString(Double.parseDouble(
                                 currentStep.toString().replaceAll("i", "")), true));
-                    }else if (currentStep.toString().contains("#")){
-                        builder.append(convertToComplexString(currentStep.toString()));
                     }else{
                         builder.append(convertToComplexString(Double.parseDouble(
                                 currentStep.toString()), false));
@@ -515,13 +511,138 @@ public final class Main {
             if (currentStep.toString().contains("i")){
                 builder.append(convertToComplexString(Double.parseDouble(
                         currentStep.toString().replaceAll("i", "")), true));
-            }else if (currentStep.toString().contains("#")){
-                builder.append(convertToComplexString(currentStep.toString()));
             }else{
                 builder.append(convertToComplexString(Double.parseDouble(currentStep.toString()), false));
             }
         }
         return builder.toString();
+    }
+
+    //does not resolve any error, provide a valid string.
+    private static String postFixConverter(String expression){
+        StringBuilder complexString = new StringBuilder();
+        boolean tokenCounter = false;
+
+        Stack<String> output = new Stack<>();
+        Stack<Character> operators = new Stack<>();
+
+        outer_loop :
+        for (int i = 0; i < expression.length(); i++){
+            char c = expression.charAt(i);
+
+            if (c == complex_token){
+                if (!tokenCounter){
+                    tokenCounter = true;
+                }else{
+                    tokenCounter = false;
+                    output.push(complexString.toString());
+                    complexString.setLength(0);
+                }
+            } else if (tokenCounter){
+                complexString.append(c);
+            } else {
+                if (c == ')'){
+                    while(operators.hasNext()){
+                        char p = operators.peek();
+                        if (p != '(')
+                            output.push(operators.pop() + "");
+                        else {
+                            operators.pop();
+                            break;
+                        }
+                    }
+                }else if (c == '('){
+                    operators.push(c);
+                }else{
+                    operationsInterface current_ops = getCharAsAnOperator(c);
+                    if (operators.getPointerLocation() == -1) {
+                        operators.push(c);
+                        continue;
+                    }
+                    while (operators.hasNext()) {
+                        char p = operators.peek();
+                        if (p != '(') {
+                            operationsInterface previous_ops = getCharAsAnOperator(p);
+                            if (current_ops.getPrecedence() <= previous_ops.getPrecedence()){
+                                output.push(operators.pop() + "");
+                            }else{
+                                operators.push(c);
+                                continue outer_loop;
+                            }
+                        }else{
+                            operators.push(c);
+                            continue outer_loop;
+                        }
+                    }
+                    //very important for whatever reason I forgot.
+                    operators.push(c);
+                }
+            }
+        }
+        while(operators.hasNext())
+            output.push(operators.pop() + "");
+
+        Stack<String> temp = new Stack<>();
+
+        while(output.hasNext())
+            temp.push(output.pop() + "");
+
+        while(temp.hasNext())
+            complexString.append(temp.pop()).append(',');
+
+        System.out.println("post fix string => " + complexString.toString());
+
+        return complexString.toString();
+    }
+
+    //does not resolve any error.
+    private static String postFixEvaluator(String post_fix){
+        StringBuilder builder = new StringBuilder();
+        String[] list = post_fix.split(",");
+        Stack<String> exp = new Stack<>();
+
+        //noinspection ForLoopReplaceableByForEach
+        for(int i = 0; i < list.length; i++){
+            if (list[i].length() == 1){
+                operationsInterface ops = getCharAsAnOperator(list[i].charAt(0));
+                switch(ops.getType()){
+                    case TYPE_CONSTANT :
+                        ComplexNumber cn_constant = dispatcher(null, null, ops);
+                        exp.push(convertComplexToString(cn_constant, false));
+                        break;
+                    case TYPE_BOTH:
+                        ComplexNumber right = convertToComplexNumber(exp.pop());
+                        ComplexNumber left = new ComplexNumber();
+                        try {
+                            left = convertToComplexNumber(exp.pop());
+                        }catch(IndexOutOfBoundsException e){
+                            if ((ops.getOperator() + "").matches("[-+]")){
+                                ComplexNumber cn_post = dispatcher(null, right, ops);
+                                exp.push(convertComplexToString(cn_post, false));
+                                break;
+                            }
+                        }
+                        ComplexNumber cn_both = dispatcher(left, right, ops);
+                        exp.push(convertComplexToString(cn_both, false));
+                        break;
+                    case TYPE_PRE :
+                        ComplexNumber left_1 = convertToComplexNumber(exp.pop());
+                        ComplexNumber cn_pre = dispatcher(left_1, null, ops);
+                        exp.push(convertComplexToString(cn_pre, false));
+                        break;
+                    case TYPE_POST :
+                        ComplexNumber right_1 = convertToComplexNumber(exp.pop());
+                        ComplexNumber cn_post = dispatcher(null, right_1, ops);
+                        exp.push(convertComplexToString(cn_post, false));
+                        break;
+                    default:
+                        break;
+                }
+            }else{
+                exp.push(list[i]);
+            }
+        }
+        return exp.pop();
     }
 
     private static String implicitSolver(String expression){
@@ -643,7 +764,7 @@ public final class Main {
                     }
                 case TYPE_CONSTANT :
                     if (right_ops == null)
-                        return opInt.getOperator() + "" + NEUTRAL_IDENTITY + "" + neutral_token;
+                        return "*" + opInt.getOperator() + "";
                     switch(right_ops.getType()){
                         case TYPE_BOTH :
                         case TYPE_PRE :
@@ -713,7 +834,7 @@ public final class Main {
                     }
                 case TYPE_CONSTANT :
                     if (left_ops == null)
-                        return "" + opInt.getOperator();
+                        return "" + opInt.getOperator() + "*";
                     switch(left_ops.getType()){
                         case TYPE_BOTH :
                         case TYPE_POST :
@@ -897,15 +1018,27 @@ public final class Main {
         return opInt.getOperator() + "";
     }
 
-    private static ComplexNumber dispatcher(ComplexNumber c1, ComplexNumber c2, operationsInterface whichOperation){
+    private static ComplexNumber dispatcher(ComplexNumber c1, ComplexNumber c2,
+                                            operationsInterface whichOperation){
         ComplexNumber number = new ComplexNumber(0, 0);
         double
-                c1r = c1.real,
-                c1i = c1.iota,
-                c2r = c2.real,
-                c2i = c2.iota;
+                c1r = c1 != null ? c1.real : 0,
+                c1i = c1 != null ? c1.iota : 0,
+                c2r = c2 != null ? c2.real : 0,
+                c2i = c2 != null ? c2.iota : 0;
         switch(whichOperation.getType()) {
             case TYPE_BOTH:
+                if ((whichOperation.getOperator() + "").matches("[-+]") && c1 == null){
+                    if (c2r != 0 && c2i != 0)
+                        whichOperation.function(c2);
+                    else if(c2r != 0)
+                        whichOperation.function(c2r, IOTA_FALSE);
+                    else if(c2i != 0)
+                        whichOperation.function(c2i, IOTA_TRUE);
+                    else
+                        whichOperation.function(c2);
+                    break;
+                }
                 //under normal circumstances
                 if (c1r != 0 && c1i == 0 && c2r != 0 && c2i == 0)
                     whichOperation.function(c1r, c2r, IOTA_NONE);
@@ -1218,6 +1351,8 @@ public final class Main {
         }
         expression = builder.toString();
         builder.setLength(0);
+        //there's no need to check for the after a symbol, because the general parser already solves for that.
+        //because the structure is like ")number" which allows the general parser to solve it already.
         for (int i = 0; i < expression.length(); i++){
             char c = expression.charAt(i);
             char p = 0;
@@ -1289,17 +1424,11 @@ public final class Main {
         ComplexNumber number = new ComplexNumber();
         StringBuilder currentStep = new StringBuilder();
 
-        if (complexString.contains(String.valueOf(neutral_token))){
-            complexString = complexString.replace(String.valueOf(neutral_token), "");
-            number.is_neutral = true;
-        }
-
         for (int i = 0; i < complexString.length(); i++){
             char c = complexString.charAt(i);
             if (c == '+' || c == '-') {
                 if (i != 0) {
-                    number.real = Double.parseDouble(!number.is_neutral ? currentStep.toString() :
-                            currentStep.toString().replaceAll(String.valueOf(neutral_token), ""));
+                    number.real = Double.parseDouble(currentStep.toString());
                     currentStep.setLength(0);
                 }
             }
@@ -1324,13 +1453,16 @@ public final class Main {
     }
 
     private static String convertComplexToString(ComplexNumber cn){
-        return complex_token + "" + cn.real + (cn.is_neutral ? String.valueOf(neutral_token) : "") +
-                (cn.iota >= 0 ? "+" : "") + cn.iota + "i" + complex_token;
+        return convertComplexToString(cn, true);
+    }
+
+    private static String convertComplexToString(ComplexNumber cn, boolean c_t){
+        return (c_t ? complex_token : "") + "" + cn.real +
+                (cn.iota >= 0 ? "+" : "") + cn.iota + "i" + (c_t ? complex_token : "");
     }
 
     static class ComplexNumber {
         public double real = 0, iota = 0;
-        private boolean is_neutral = false;
 
         public ComplexNumber(){
             //empty
@@ -1372,7 +1504,103 @@ public final class Main {
         }
     }
 
-    static class Stack<E> {
+    //LIFO Structure
+    static class Stack<T> {
+        private Object[] items;
+        //internal Stack pointer;
+        private int pointer = -1;
+
+        Stack(int size) {
+            items = new Object[size];
+        }
+
+        Stack(){
+            this(10);
+        }
+
+        private void push(T item){
+            //increment the pointer
+            pointer++;
+
+            if (pointer <= items.length - 1) {
+                items[pointer] = item;
+                return;
+            }
+            //no index is free, allocate a new array with increased size;
+            var items1 = new Object[items.length + 10];
+            //copy the previous array over to the new one.
+            System.arraycopy(items, 0, items1, 0, items.length);
+            //reassignment
+            items = items1;
+
+            items[pointer] = item;
+        }
+
+        @SuppressWarnings("unchecked")
+        private T pop(){
+            if (pointer < 0)
+                throw new IndexOutOfBoundsException("pointer is out of bounds");
+
+            T item;
+            item = (T) items[pointer];
+            //no need to remove the data at the current pointer
+            //since the pointer will be decremented, and the next time the push function will be called,
+            //the pointer will be incremented and any data at the current pointer location will be replaced.
+
+            //decrement the pointer
+            pointer--;
+
+            return item;
+        }
+
+        private T peek(){
+            if (pointer >= 0)
+                //noinspection unchecked
+                return (T) items[pointer];
+            throw new IndexOutOfBoundsException("pointer is out of bounds");
+        }
+
+        private boolean hasNext(){
+            //pointer is only incremented when an item is pushed onto the stack, therefore providing
+            //null safety by default, meaning wherever the pointer is located, it's guaranteed to be occupied,
+            //by a certain object.
+            return pointer >= 0;
+        }
+
+        private int getLength(){
+            return items.length;
+        }
+
+        private int getPointerLocation() {
+            return pointer;
+        }
+    }
+
+    //StringBuilder
+    /*static class builder{
+        //backing array
+        private char[] arr;
+
+        //pointer
+        private int pointer = -1;
+
+        builder(int size){
+            arr = new char[size];
+        }
+
+        builder (){
+            this(50);
+        }
+
+        public void append(String str){
+            for (int i = 0; i < str.length(); i++){
+
+            }
+        }
+    }*/
+
+    @Deprecated
+    static class LazyStack<E> {
 
         private final Object[] items;
         private final int[] positionCounter;
@@ -1380,7 +1608,7 @@ public final class Main {
         private final int size;
 
         @SuppressWarnings("Unchecked")
-        public Stack(int size){
+        public LazyStack(int size){
             items = new Object[size];//(E[]) Array.newInstance(clazz, size);
 
             positionCounter = new int[size];
@@ -1402,7 +1630,7 @@ public final class Main {
                 }
             }
             if (freeIndex == -1)
-                throw new IllegalStateException("the Stack is full, cannot add any more value");
+                throw new IllegalStateException("the LazyStack is full, cannot add any more value");
             items[freeIndex] = item;
         }
 
@@ -1414,7 +1642,7 @@ public final class Main {
         @SuppressWarnings("unchecked")
         public E pull(int index){
             if (index > size - 1 || index < 0){
-                throw new IllegalStateException("the provided index is beyond the Stack size");
+                throw new IllegalStateException("the provided index is beyond the LazyStack size");
             }
             return (E)items[index];
         }
@@ -1429,7 +1657,7 @@ public final class Main {
 
         public void pop(int index){
             if (index > size - 1 || index < 0){
-                throw new IllegalStateException("the provided index is beyond the Stack size");
+                throw new IllegalStateException("the provided index is beyond the LazyStack size");
             }
             items[index] = null;
             positionCounter[index] = 0;

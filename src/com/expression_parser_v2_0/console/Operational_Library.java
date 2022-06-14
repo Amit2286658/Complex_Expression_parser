@@ -72,7 +72,11 @@ public enum Operational_Library implements operationsInterface {
 
     @Override
     public void function() {
-
+        switch(operator){
+            case ';' :
+                doubleResult = 100;
+                resultFlag = RESULT_REAL;
+        }
     }
 
     @Override
@@ -83,12 +87,46 @@ public enum Operational_Library implements operationsInterface {
                     resultFlag = RESULT_REAL;
                     doubleResult = Math.sqrt(d);
                 }
+                break;
+            case '!' :
+                double result = 1;
+                for(int i = (int)d; i > 0; i--){
+                    result *= i;
+                }
+                resultFlag = RESULT_REAL;
+                doubleResult = result;
+                break;
+            case '-' :
+                if (iotaStatus == IOTA_TRUE){
+                    resultFlag = RESULT_IOTA;
+                }else{
+                    resultFlag = RESULT_REAL;
+                }
+                doubleResult = -d;
+                break;
+            case '+' :
+                if (iotaStatus == IOTA_TRUE){
+                    resultFlag = RESULT_IOTA;
+                }else{
+                    resultFlag = RESULT_REAL;
+                }
+                doubleResult = d;
+                break;
         }
     }
 
     @Override
     public void function(ComplexNumber cn) {
-
+        switch(operator){
+            case '-' :
+                resultFlag = RESULT_COMPLEX;
+                complexResult = new ComplexNumber(-cn.real, -cn.iota);
+                break;
+            case '+' :
+                resultFlag = RESULT_COMPLEX;
+                complexResult = cn;
+                break;
+        }
     }
 
     @Override
