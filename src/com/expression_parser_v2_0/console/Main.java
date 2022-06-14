@@ -597,7 +597,6 @@ public final class Main {
 
     //does not resolve any error.
     private static String postFixEvaluator(String post_fix){
-        StringBuilder builder = new StringBuilder();
         String[] list = post_fix.split(",");
         Stack<String> exp = new Stack<>();
 
