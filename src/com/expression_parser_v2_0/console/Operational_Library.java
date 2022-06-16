@@ -96,37 +96,12 @@ public enum Operational_Library implements operationsInterface {
                 resultFlag = RESULT_REAL;
                 doubleResult = result;
                 break;
-            case '-' :
-                if (iotaStatus == IOTA_TRUE){
-                    resultFlag = RESULT_IOTA;
-                }else{
-                    resultFlag = RESULT_REAL;
-                }
-                doubleResult = -d;
-                break;
-            case '+' :
-                if (iotaStatus == IOTA_TRUE){
-                    resultFlag = RESULT_IOTA;
-                }else{
-                    resultFlag = RESULT_REAL;
-                }
-                doubleResult = d;
-                break;
         }
     }
 
     @Override
     public void function(ComplexNumber cn) {
-        switch(operator){
-            case '-' :
-                resultFlag = RESULT_COMPLEX;
-                complexResult = new ComplexNumber(-cn.real, -cn.iota);
-                break;
-            case '+' :
-                resultFlag = RESULT_COMPLEX;
-                complexResult = cn;
-                break;
-        }
+
     }
 
     @Override

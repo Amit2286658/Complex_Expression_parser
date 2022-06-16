@@ -4,6 +4,8 @@ package com.expression_parser_v2_0.console;
 *todo : create a new branch and commit the project there, do not merge into the master branch yet.*/
 
 import java.util.ArrayList;
+import java.util.Objects;
+
 //no inheritance.
 public final class Main {
     //no instance creation.
@@ -69,6 +71,9 @@ public final class Main {
             PRECEDENCE_MEDIUM = 100,
             PRECEDENCE_MAX = 500;
 
+    private static final int
+            PRECEDENCE_FUNCTION = 1000;
+
     public interface operationsInterface {
         String[] getOperationNames();
         char getOperator();
@@ -110,18 +115,18 @@ public final class Main {
         if (expression.length() == 0)
             throw new IllegalArgumentException("given input string is empty");
 
-
         expression = expression.replaceAll("\\s+", "");
 
-        expression = EvaluateFunction(expression);
         expression = GeneralParser(expression);
         expression = implicitSolver(expression);
+        expression = functionHandler(expression);
         expression = complexConverter(expression);
         expression = postFixConverter(expression);
         expression = postFixEvaluator(expression);
         return SortResult(expression);
     }
 
+    @Deprecated
     private static String EvaluateFunction(String expression){
         if(functions.isEmpty())
             return expression;
@@ -157,7 +162,7 @@ public final class Main {
                             isInsideFunction = false;
                             if (!sub_string.toString().isEmpty()) {
                                 try {
-                                    builder.append(functionDispatcher(sub_string.toString(), fs));
+                                    builder.append(functionDispatcher(sub_string.toString().split(","), fs));
                                 }catch(IllegalArgumentException e){
                                     //catch and throw, it means the function map didn't match the given arguments,
                                     //build the expression back and loop ahead to see if it has any overload,
@@ -314,6 +319,15 @@ public final class Main {
         expression = expression.replaceAll("--", "\\+");
         expression = expression.replaceAll("i\\(", "i*\\(");
 
+        Stack<String> fn_names = new Stack<>();
+        for (functionsInterface fnInt : functions){
+            String name = fnInt.getFunctionName();
+            if (!fn_names.contains(name)){
+                expression = expression.replace(name, function_token + name);
+                fn_names.push(name);
+            }
+        }
+
         //create name array
         StringBuilder nameBuilder = new StringBuilder();
         for (operationsInterface opInt : operations){
@@ -364,10 +378,14 @@ public final class Main {
                     builder.append('*');
                 }
                 builder.append(c);
-                if (a == '(') {
+                if (a == '(' || a == function_token) {
                     builder.append('*');
                 }
-            } else{
+            }else if(c == function_token){
+                if (p == ')')
+                    builder.append('*');
+                builder.append(c);
+            }else{
                 builder.append(c);
             }
         }
@@ -466,13 +484,23 @@ public final class Main {
         builder.setLength(0);*/
 
         //convert each number into a complex number
-        //outer_loop :
+        outer_loop :
         for (int i = 0; i < expression.length(); i++){
             String c = String.valueOf(expression.charAt(i));
-            if (c.matches("[1234567890.#iIeE]")){
-                currentStep.append(c);
+            if (c.matches("[1234567890.iIeE]")){
+                char p = 0;
+                if (i != 0)
+                    p = expression.charAt(i - 1);
+                if (c.matches("[.iIeE]")){
+                    if ((p + "").matches("[1234567890]")){
+                        currentStep.append(c);
+                    }else
+                        builder.append(c);
+                }else{
+                    currentStep.append(c);
+                }
             }else{
-                /*if (c.matches("[+-]")){
+                if (c.matches("[+-]")){
                     char p;
                     if (i != 0) {
                         p = expression.charAt(i - 1);
@@ -493,7 +521,7 @@ public final class Main {
                         currentStep.append(c);
                         continue;
                     }
-                }*/
+                }
                 if (!currentStep.toString().equals("")){
                     if (currentStep.toString().contains("i")){
                         builder.append(convertToComplexString(Double.parseDouble(
@@ -521,10 +549,13 @@ public final class Main {
     //does not resolve any error, provide a valid string.
     private static String postFixConverter(String expression){
         StringBuilder complexString = new StringBuilder();
+        StringBuilder functionName = new StringBuilder();
+
         boolean tokenCounter = false;
+        boolean isInFunction = false;
 
         Stack<String> output = new Stack<>();
-        Stack<Character> operators = new Stack<>();
+        Stack<String> operators = new Stack<>();
 
         outer_loop :
         for (int i = 0; i < expression.length(); i++){
@@ -540,10 +571,24 @@ public final class Main {
                 }
             } else if (tokenCounter){
                 complexString.append(c);
-            } else {
+            } else if (c == function_token){
+                if (!isInFunction){
+                    isInFunction = true;
+                    functionName.append(c);
+                }
+            } else if (isInFunction){
+                char a = expression.charAt(i + 1);
+                functionName.append(c);
+                if (a == '(') {
+                    isInFunction = false;
+                    operators.push(functionName.toString());
+                    functionName.setLength(0);
+                }
+            }
+            else {
                 if (c == ')'){
                     while(operators.hasNext()){
-                        char p = operators.peek();
+                        char p = operators.peek().charAt(0);
                         if (p != '(')
                             output.push(operators.pop() + "");
                         else {
@@ -551,31 +596,40 @@ public final class Main {
                             break;
                         }
                     }
-                }else if (c == '('){
-                    operators.push(c);
-                }else{
+                }else if (c == '(')
+                    operators.push(c + "");
+                else{
+                    if (c == ',')
+                        continue;
+
                     operationsInterface current_ops = getCharAsAnOperator(c);
                     if (operators.getPointerLocation() == -1) {
-                        operators.push(c);
+                        operators.push(c + "");
                         continue;
                     }
                     while (operators.hasNext()) {
-                        char p = operators.peek();
+                        char p = operators.peek().charAt(0);
                         if (p != '(') {
-                            operationsInterface previous_ops = getCharAsAnOperator(p);
-                            if (current_ops.getPrecedence() <= previous_ops.getPrecedence()){
+                            boolean isFun = false;
+                            if (p == function_token)
+                                isFun = true;
+                            operationsInterface previous_ops = null;
+                            if (!isFun)
+                                previous_ops = getCharAsAnOperator(p);
+                            if (current_ops.getPrecedence() <= (!isFun ? previous_ops.getPrecedence() :
+                                    PRECEDENCE_FUNCTION)){
                                 output.push(operators.pop() + "");
                             }else{
-                                operators.push(c);
+                                operators.push(c + "");
                                 continue outer_loop;
                             }
                         }else{
-                            operators.push(c);
+                            operators.push(c + "");
                             continue outer_loop;
                         }
                     }
                     //very important for whatever reason I forgot.
-                    operators.push(c);
+                    operators.push(c + "");
                 }
             }
         }
@@ -600,36 +654,43 @@ public final class Main {
         String[] list = post_fix.split(",");
         Stack<String> exp = new Stack<>();
 
-        //noinspection ForLoopReplaceableByForEach
-        for(int i = 0; i < list.length; i++){
-            if (list[i].length() == 1){
+        for (int i = 0; i < list.length; i++) {
+            if (list[i].charAt(0) == function_token){
+                String name = list[i].replace(function_token + "", "");
+                for (functionsInterface fn : functions){
+                    if (fn.getFunctionName().equals(name)){
+                        String[] params = new String[(int) convertToComplexNumber(list[i-1]).real];
+                        for(int j = params.length - 1; j >= 0; j--) {
+                            params[j] = list[i - (i - 1)];
+                        }
+                        try{
+                            String result = functionDispatcher(params, fn);
+                            exp.push(result);
+                            break;
+                        }catch(IllegalArgumentException e){
+                            //empty
+                        }
+                    }
+                }
+            } else if (list[i].length() == 1) {
                 operationsInterface ops = getCharAsAnOperator(list[i].charAt(0));
-                switch(ops.getType()){
-                    case TYPE_CONSTANT :
+                switch (ops.getType()) {
+                    case TYPE_CONSTANT:
                         ComplexNumber cn_constant = dispatcher(null, null, ops);
                         exp.push(convertComplexToString(cn_constant, false));
                         break;
                     case TYPE_BOTH:
                         ComplexNumber right = convertToComplexNumber(exp.pop());
-                        ComplexNumber left = new ComplexNumber();
-                        try {
-                            left = convertToComplexNumber(exp.pop());
-                        }catch(IndexOutOfBoundsException e){
-                            if ((ops.getOperator() + "").matches("[-+]")){
-                                ComplexNumber cn_post = dispatcher(null, right, ops);
-                                exp.push(convertComplexToString(cn_post, false));
-                                break;
-                            }
-                        }
+                        ComplexNumber left = convertToComplexNumber(exp.pop());
                         ComplexNumber cn_both = dispatcher(left, right, ops);
                         exp.push(convertComplexToString(cn_both, false));
                         break;
-                    case TYPE_PRE :
+                    case TYPE_PRE:
                         ComplexNumber left_1 = convertToComplexNumber(exp.pop());
                         ComplexNumber cn_pre = dispatcher(left_1, null, ops);
                         exp.push(convertComplexToString(cn_pre, false));
                         break;
-                    case TYPE_POST :
+                    case TYPE_POST:
                         ComplexNumber right_1 = convertToComplexNumber(exp.pop());
                         ComplexNumber cn_post = dispatcher(null, right_1, ops);
                         exp.push(convertComplexToString(cn_post, false));
@@ -637,11 +698,69 @@ public final class Main {
                     default:
                         break;
                 }
-            }else{
+            } else {
                 exp.push(list[i]);
             }
         }
         return exp.pop();
+    }
+
+    private static String functionHandler(String expression){
+        expression = functionUpdater(expression);
+
+        Stack<String> fn_names = new Stack<>();
+        for (functionsInterface fnInt : functions){
+            String name = fnInt.getFunctionName();
+            if (!fn_names.contains(name)){
+                expression = expression.replace(name, function_token + name);
+                fn_names.push(name);
+            }
+        }
+        return expression;
+    }
+
+    private static String functionUpdater(String expression){
+        StringBuilder builder = new StringBuilder();
+
+        boolean param_scan = false;
+        int bracket_counter = 0;
+        int param_count = 0;
+        boolean isInFunction = false;
+
+        for (int i = 0; i < expression.length(); i++){
+            char c = expression.charAt(i);
+            if (c == function_token && bracket_counter == 0){
+                isInFunction = true;
+                continue;
+            }else if (isInFunction){
+                if (expression.charAt(i + 1) == '('){
+                    isInFunction = false;
+                    param_scan = true;
+                }
+            }
+            builder.append(c);
+            if (param_scan){
+                if (c == '(')
+                    bracket_counter++;
+                else if (c == ')') {
+                    bracket_counter--;
+                    if (bracket_counter == 0){
+                        param_scan = false;
+                        builder.append(',').append(++param_count);
+                        param_count = 0;
+                    }
+                }
+                else if (c ==',' && bracket_counter == 1)
+                    param_count++;
+            }
+
+        }
+        expression = builder.toString();
+
+        if (builder.toString().contains(function_token + ""))
+            expression = functionUpdater(expression);
+
+        return expression;
     }
 
     private static String implicitSolver(String expression){
@@ -674,7 +793,7 @@ public final class Main {
         //they must end with a number, or else they'll be invalid.
         //only left operand can have an iota 'i'.
         boolean l = (left + "").matches("[1234567890)i]");
-        boolean r = (right + "").matches("[1234567890(]");
+        boolean r = (right + "").matches("[1234567890(@]");
 
         if (l && r){
             switch (opInt.getType()){
@@ -1119,11 +1238,9 @@ public final class Main {
 
     //the caller should take care if the sub_expression is empty or not, the dispatcher
     // will not resolve any problems.
-    private static String functionDispatcher(String sub_expression, functionsInterface fs){
+    private static String functionDispatcher(String[] sub_expression, functionsInterface fs){
         int[] map = fs.getFunctionMap();
         Argument[] arguments;
-
-        String[] items = sub_expression.split(",");
 
         boolean isArray = false;
 
@@ -1136,17 +1253,17 @@ public final class Main {
             isArray = true;
         }
 
-        arguments = new Argument[isArray ? items.length : map.length];
+        arguments = new Argument[isArray ? sub_expression.length : map.length];
 
         if (!isArray) {
-            if (map.length != items.length)
+            if (map.length != sub_expression.length)
                 throw new IllegalArgumentException("the given arguments does not match the method parameter map");
             for (int i = 0; i < map.length; i++) {
                 int id = map[i];
                 switch (id) {
                     case ARGUMENT_DOUBLE:
                         try {
-                            double real = Double.parseDouble(Evaluate(items[i]));
+                            double real = Double.parseDouble(sub_expression[i]);
                             arguments[i] = new Argument(real, null, null);
                         } catch (NumberFormatException e) {
                             throw new IllegalArgumentException("the given double is not parsable");
@@ -1154,7 +1271,7 @@ public final class Main {
                         break;
                     case ARGUMENT_IOTA:
                         try {
-                            String imag = Evaluate(items[i]);
+                            String imag = sub_expression[i];
                             double iota;
                             if (imag.contains("i"))
                                 iota = Double.parseDouble(imag.replaceAll("i", ""));
@@ -1167,16 +1284,16 @@ public final class Main {
                         break;
                     case ARGUMENT_COMPLEX:
                         try {
-                            ComplexNumber cn = convertToComplexNumber(Evaluate(items[i]));
+                            ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
                             if (cn.real == 0 || cn.iota == 0)
                                 throw new NumberFormatException("the given complex number is in fact a number");
-                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(items[i])), null);
+                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(sub_expression[i])), null);
                         } catch (Exception e) {
                             throw new IllegalArgumentException("the given complex number is not correct");
                         }
                         break;
                     case ARGUMENT_STRING:
-                        arguments[i] = new Argument(0, null, items[i]);
+                        arguments[i] = new Argument(0, null, sub_expression[i]);
                         break;
                     case ARGUMENT_ARRAY :
                         throw new ExpressionException("the array declaration must be the first element");
@@ -1186,11 +1303,11 @@ public final class Main {
             }
         }else {
             int type = map[1];
-            for (int i = 0; i < items.length; i++){
+            for (int i = 0; i < sub_expression.length; i++){
                 switch(type){
                     case ARGUMENT_DOUBLE:
                         try {
-                            double real = Double.parseDouble(Evaluate(items[i]));
+                            double real = Double.parseDouble(sub_expression[i]);
                             arguments[i] = new Argument(real, null, null);
                         } catch (NumberFormatException e) {
                             throw new IllegalArgumentException("the given double is not parsable");
@@ -1198,7 +1315,7 @@ public final class Main {
                         break;
                     case ARGUMENT_IOTA:
                         try {
-                            String imag = Evaluate(items[i]);
+                            String imag = sub_expression[i];
                             double iota;
                             if (imag.contains("i"))
                                 iota = Double.parseDouble(imag.replaceAll("i", ""));
@@ -1211,16 +1328,16 @@ public final class Main {
                         break;
                     case ARGUMENT_COMPLEX:
                         try {
-                            ComplexNumber cn = convertToComplexNumber(Evaluate(items[i]));
+                            ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
                             if (cn.real == 0 || cn.iota == 0)
                                 throw new NumberFormatException("the given complex number is in fact a number");
-                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(items[i])), null);
+                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(sub_expression[i])), null);
                         } catch (Exception e) {
                             throw new IllegalArgumentException("the given double is not parsable");
                         }
                         break;
                     case ARGUMENT_STRING:
-                        arguments[i] = new Argument(0, null, items[i]);
+                        arguments[i] = new Argument(0, null, sub_expression[i]);
                         break;
                     case ARGUMENT_ARRAY :
                         throw new ExpressionException("the array declaration must be the first" +
@@ -1235,20 +1352,22 @@ public final class Main {
 
         int resultFlag = fs.getResultFlag();
 
+        String result = "";
+
         switch(resultFlag){
             case RESULT_REAL :
-                sub_expression = String.valueOf(fs.getDoubleResult());
+                result = String.valueOf(fs.getDoubleResult());
                 break;
             case RESULT_IOTA :
-                sub_expression = fs.getDoubleResult() + "i";
+                result = fs.getDoubleResult() + "i";
                 break;
             case RESULT_COMPLEX :
-                sub_expression = "(" + convertComplexToString(fs.getComplexResult()).
+                result = "(" + convertComplexToString(fs.getComplexResult()).
                         replace(String.valueOf(complex_token), "") + ")";
                 break;
         }
 
-        return sub_expression;
+        return result;
     }
 
     private static operationsInterface getCharAsAnOperator(char c){
@@ -1260,6 +1379,7 @@ public final class Main {
         return opInt;
     }
 
+    @Deprecated
     private static String convertFunctionString(String expression, String name){
         ArrayList<String> chunks_main = new ArrayList<>();
         ArrayList<String> chunks_sub = new ArrayList<>();
@@ -1564,6 +1684,18 @@ public final class Main {
             //null safety by default, meaning wherever the pointer is located, it's guaranteed to be occupied,
             //by a certain object.
             return pointer >= 0;
+        }
+
+        //no pointer modification.
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+        private boolean contains(T item){
+            for(Object op : items){
+                // noinspection unchecked
+                if (Objects.equals((T) op, item)){
+                    return true;
+                }
+            }
+            return false;
         }
 
         private int getLength(){
