@@ -634,12 +634,12 @@ public final class Main {
             }
         }
         while(operators.hasNext())
-            output.push(operators.pop() + "");
+            output.push(operators.pop());
 
         Stack<String> temp = new Stack<>();
 
         while(output.hasNext())
-            temp.push(output.pop() + "");
+            temp.push(output.pop());
 
         while(temp.hasNext())
             complexString.append(temp.pop()).append(',');
@@ -654,26 +654,32 @@ public final class Main {
         String[] list = post_fix.split(",");
         Stack<String> exp = new Stack<>();
 
-        for (int i = 0; i < list.length; i++) {
-            if (list[i].charAt(0) == function_token){
-                String name = list[i].replace(function_token + "", "");
-                for (functionsInterface fn : functions){
-                    if (fn.getFunctionName().equals(name)){
-                        String[] params = new String[(int) convertToComplexNumber(list[i-1]).real];
-                        for(int j = params.length - 1; j >= 0; j--) {
-                            params[j] = list[i - (i - 1)];
-                        }
-                        try{
-                            String result = functionDispatcher(params, fn);
-                            exp.push(result);
-                            break;
-                        }catch(IllegalArgumentException e){
+        outer_loop :
+        for (String s : list) {
+            if (s.charAt(0) == function_token) {
+                String name = s.replace(function_token + "", "");
+                //loop has finished, which means
+                //the parameters didn't match with any overload, throw an exception.
+                //if everything goes well, the current iteration of the outer loop will be skipped.
+                //therefore, there's absolutely no need to put the items back onto the stack.
+                String[] params = new String[(int) convertToComplexNumber(exp.pop()).real];
+                for (int j = params.length - 1; j >= 0; j--) {
+                    params[j] = exp.pop();
+                }
+                for (functionsInterface fn : functions) {
+                    if (fn.getFunctionName().equals(name)) {
+                        try {
+                            ComplexNumber result = functionDispatcher(params, fn);
+                            exp.push(convertComplexToString(result, false));
+                            continue outer_loop;
+                        } catch (IllegalArgumentException e) {
                             //empty
                         }
                     }
                 }
-            } else if (list[i].length() == 1) {
-                operationsInterface ops = getCharAsAnOperator(list[i].charAt(0));
+                throw new ExpressionException("the function parameters didn't match with any overload");
+            } else if (s.length() == 1) {
+                operationsInterface ops = getCharAsAnOperator(s.charAt(0));
                 switch (ops.getType()) {
                     case TYPE_CONSTANT:
                         ComplexNumber cn_constant = dispatcher(null, null, ops);
@@ -699,7 +705,7 @@ public final class Main {
                         break;
                 }
             } else {
-                exp.push(list[i]);
+                exp.push(s);
             }
         }
         return exp.pop();
@@ -746,7 +752,7 @@ public final class Main {
                     bracket_counter--;
                     if (bracket_counter == 0){
                         param_scan = false;
-                        builder.append(',').append(++param_count);
+                        builder.append(++param_count);
                         param_count = 0;
                     }
                 }
@@ -760,6 +766,7 @@ public final class Main {
         if (builder.toString().contains(function_token + ""))
             expression = functionUpdater(expression);
 
+        System.out.println(expression);
         return expression;
     }
 
@@ -1238,7 +1245,7 @@ public final class Main {
 
     //the caller should take care if the sub_expression is empty or not, the dispatcher
     // will not resolve any problems.
-    private static String functionDispatcher(String[] sub_expression, functionsInterface fs){
+    private static ComplexNumber functionDispatcher(String[] sub_expression, functionsInterface fs){
         int[] map = fs.getFunctionMap();
         Argument[] arguments;
 
@@ -1263,22 +1270,31 @@ public final class Main {
                 switch (id) {
                     case ARGUMENT_DOUBLE:
                         try {
-                            double real = Double.parseDouble(sub_expression[i]);
+                            ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
+                            if (cn.real != 0 && cn.iota != 0)
+                                throw new NumberFormatException("the number is a complex number");
+                            else if (cn.iota != 0)
+                                throw new NumberFormatException("the given number is an iota");
+                            double real = cn.real;
                             arguments[i] = new Argument(real, null, null);
                         } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException(e.getMessage());
+                        } catch (Exception e) {
                             throw new IllegalArgumentException("the given double is not parsable");
                         }
                         break;
                     case ARGUMENT_IOTA:
                         try {
-                            String imag = sub_expression[i];
-                            double iota;
-                            if (imag.contains("i"))
-                                iota = Double.parseDouble(imag.replaceAll("i", ""));
-                            else
-                                throw new NumberFormatException();
+                            ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
+                            if (cn.real != 0 && cn.iota != 0)
+                                throw new NumberFormatException("the number is a complex number");
+                            else if (cn.real != 0)
+                                throw new NumberFormatException("the given number is real");
+                            double iota = cn.iota;
                             arguments[i] = new Argument(iota, null, null);
                         } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException(e.getMessage());
+                        } catch (Exception e) {
                             throw new IllegalArgumentException("the given double is not parsable");
                         }
                         break;
@@ -1287,7 +1303,9 @@ public final class Main {
                             ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
                             if (cn.real == 0 || cn.iota == 0)
                                 throw new NumberFormatException("the given complex number is in fact a number");
-                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(sub_expression[i])), null);
+                            arguments[i] = new Argument(0, cn, null);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException(e.getMessage());
                         } catch (Exception e) {
                             throw new IllegalArgumentException("the given complex number is not correct");
                         }
@@ -1307,22 +1325,32 @@ public final class Main {
                 switch(type){
                     case ARGUMENT_DOUBLE:
                         try {
-                            double real = Double.parseDouble(sub_expression[i]);
+                            ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
+                            if (cn.real != 0 && cn.iota != 0)
+                                throw new NumberFormatException("the number is a complex number");
+                            else if (cn.iota != 0)
+                                throw new NumberFormatException("the given number is an iota");
+                            double real = cn.real;
                             arguments[i] = new Argument(real, null, null);
                         } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException(e.getMessage());
+                        } catch (Exception e) {
                             throw new IllegalArgumentException("the given double is not parsable");
                         }
                         break;
                     case ARGUMENT_IOTA:
                         try {
-                            String imag = sub_expression[i];
-                            double iota;
-                            if (imag.contains("i"))
-                                iota = Double.parseDouble(imag.replaceAll("i", ""));
-                            else
-                                throw new NumberFormatException();
+                            ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
+                            if (cn.real != 0 && cn.iota != 0)
+                                throw new NumberFormatException("the number is a complex number");
+                            else if (cn.real != 0)
+                                throw new NumberFormatException("the given number is real");
+
+                            double iota = cn.iota;
                             arguments[i] = new Argument(iota, null, null);
                         } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException(e.getMessage());
+                        } catch (Exception e) {
                             throw new IllegalArgumentException("the given double is not parsable");
                         }
                         break;
@@ -1331,9 +1359,11 @@ public final class Main {
                             ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
                             if (cn.real == 0 || cn.iota == 0)
                                 throw new NumberFormatException("the given complex number is in fact a number");
-                            arguments[i] = new Argument(0, convertToComplexNumber(Evaluate(sub_expression[i])), null);
+                            arguments[i] = new Argument(0, cn, null);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException(e.getMessage());
                         } catch (Exception e) {
-                            throw new IllegalArgumentException("the given double is not parsable");
+                            throw new IllegalArgumentException("the given complex number is not correct");
                         }
                         break;
                     case ARGUMENT_STRING:
@@ -1352,22 +1382,16 @@ public final class Main {
 
         int resultFlag = fs.getResultFlag();
 
-        String result = "";
-
         switch(resultFlag){
             case RESULT_REAL :
-                result = String.valueOf(fs.getDoubleResult());
-                break;
+                return convertToComplexNumber(fs.getDoubleResult(), false);
             case RESULT_IOTA :
-                result = fs.getDoubleResult() + "i";
-                break;
+                return convertToComplexNumber(fs.getDoubleResult(), true);
             case RESULT_COMPLEX :
-                result = "(" + convertComplexToString(fs.getComplexResult()).
-                        replace(String.valueOf(complex_token), "") + ")";
-                break;
+                return fs.getComplexResult();
+            default :
+                return new ComplexNumber();
         }
-
-        return result;
     }
 
     private static operationsInterface getCharAsAnOperator(char c){
