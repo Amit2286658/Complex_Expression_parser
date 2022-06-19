@@ -126,189 +126,6 @@ public final class Main {
         return SortResult(expression);
     }
 
-    @Deprecated
-    private static String EvaluateFunction(String expression){
-        if(functions.isEmpty())
-            return expression;
-
-        StringBuilder builder = new StringBuilder();
-        for (functionsInterface fs : functions){
-            expression = convertFunctionString(expression, fs.getFunctionName());
-            boolean isInsideFunction = false;
-            int bracketCounter = 0;
-            StringBuilder sub_string = new StringBuilder();
-            for (int i = 0; i < expression.length(); i++){
-                char c = expression.charAt(i);
-                if (c == function_token){
-                    isInsideFunction = true;
-                    continue;
-                }
-
-                if (!isInsideFunction)
-                    builder.append(c);
-
-                if (isInsideFunction){
-                    if (c == '('){
-                        if (bracketCounter != 0)
-                            sub_string.append(c);
-                        bracketCounter++;
-                        continue;
-                    }
-                    if (c == ')'){
-                        bracketCounter--;
-                        if (bracketCounter != 0)
-                            sub_string.append(c);
-                        else{
-                            isInsideFunction = false;
-                            if (!sub_string.toString().isEmpty()) {
-                                try {
-                                    builder.append(functionDispatcher(sub_string.toString().split(","), fs));
-                                }catch(IllegalArgumentException e){
-                                    //catch and throw, it means the function map didn't match the given arguments,
-                                    //build the expression back and loop ahead to see if it has any overload,
-                                    //then I'll repeat the same process again.
-                                    //but what if, none of the map matched with the given arguments
-                                    //the code will throw a NullPointerException as it should.
-                                    //I can do a check before continuing ahead to see
-                                    //if there's any remaining function name
-                                    //if there are as there shouldn't be, that means the given arguments,
-                                    //didn't match with any map of any overload,
-                                    //and I should throw a custom exception there.
-                                    //but I'm not going to bother doing another check at the end of the method,
-                                    //just display an error and leave.
-                                    builder.append(fs.getFunctionName())
-                                            .append('(').append(sub_string.toString()).append(')');
-                                }
-                            }
-                            sub_string.setLength(0);
-                        }
-                        continue;
-                    }
-                    sub_string.append(c);
-                }
-            }
-            expression = builder.toString();
-            builder.setLength(0);
-        }
-        return expression;
-    }
-
-    //it only deals with the properly formatted string, it does not resolve any errors in the string.
-    //keep it around for future testing related uses.
-    @Deprecated
-    private static String EvaluateOperation(String expression){
-        if (operations.isEmpty())
-            return expression;
-
-        LazyStack<ComplexNumber> operand = new LazyStack<>(2);
-        LazyStack<operationsInterface> ops = new LazyStack<>(1);
-
-        boolean tokenCounter = false;
-        StringBuilder complexString = new StringBuilder();
-
-        @SuppressWarnings("UnusedAssignment")
-        ComplexNumber complex_number = new ComplexNumber(0, 0);
-
-        StringBuilder builder = new StringBuilder();
-
-        outer_loop :
-        for (int i = 0; i < expression.length(); i++){
-            char c = expression.charAt(i);
-            if (c == complex_token){
-                if (!tokenCounter){
-                    tokenCounter = true;
-                }else{
-                    tokenCounter = false;
-                    complex_number = convertToComplexNumber(complexString.toString());
-                    operand.push(complex_number);
-                    complexString.setLength(0);
-                }
-            } else if (tokenCounter){
-                complexString.append(c);
-            } else {
-                operationsInterface whichOperator = null;
-                for (operationsInterface opInt : operations) {
-                    if (opInt.getOperator() == c) {
-                        if (ops.pullFirst() == null) {
-                            ops.push(opInt);
-                            continue outer_loop;
-                        } else
-                            whichOperator = opInt;
-                        break;
-                    }
-                }
-                //the second occurrence of an operator cannot be null, it can be null
-                //only if it's the first occurrence of an operator but even then, the flow cannot reach this point
-                //if it's the first occurrence of an operator.
-                assert(whichOperator != null) : "this assertion must always return true.";
-                int precedence1 = ops.pullFirst().getPrecedence();
-                int precedence2 = whichOperator.getPrecedence();
-
-                if (precedence1 > precedence2){
-                    ComplexNumber cn = dispatcher(operand.pull(0), operand.pull(1), ops.pullFirst());
-                    operand.popAll();
-                    ops.popAll();
-
-                    operand.push(cn);
-                    ops.push(whichOperator);
-                }else if (precedence1 == precedence2){
-                    if (ops.pullFirst().getOperator() == whichOperator.getOperator() &&
-                            whichOperator.getType() == TYPE_POST){
-                        ComplexNumber cn = operand.pull(1);
-                        String str = convertComplexToString(operand.pullFirst());
-                        builder.append(str);
-                        builder.append(ops.pullFirst().getOperator());
-
-                        operand.popAll();
-                        ops.popAll();
-
-                        operand.push(cn);
-                        ops.push(whichOperator);
-                    }else{
-                        ComplexNumber cn = dispatcher(operand.pull(0), operand.pull(1), ops.pullFirst());
-                        operand.popAll();
-                        ops.popAll();
-
-                        operand.push(cn);
-                        ops.push(whichOperator);
-                    }
-                }else{
-                    ComplexNumber cn = operand.pull(1);
-                    String str = convertComplexToString(operand.pullFirst());
-                    builder.append(str);
-                    builder.append(ops.pullFirst().getOperator());
-
-                    operand.popAll();
-                    ops.popAll();
-
-                    operand.push(cn);
-                    ops.push(whichOperator);
-                }
-            }
-        }
-        //the check is to return the first operand in case the expression
-        //only contains one complexNumber(for whatever reason).
-        if (operand.pull(1) == null && ops.pullFirst() == null)
-            return convertComplexToString(operand.pullFirst());
-
-        //when a proper string is given, this statement is guaranteed to run,
-        //so no need to do any additional checks here.
-        builder.append(convertComplexToString(dispatcher(operand.pull(0), operand.pull(1),
-                ops.pullFirst())));
-
-        operand.popAll();
-        ops.popAll();
-
-        expression = builder.toString();
-
-        boolean containsOperations = checkOperatorPresence(expression);
-
-        if (containsOperations)
-            expression = EvaluateOperation(expression);
-
-        return expression;
-    }
-
     //general parser to resolve minor errors in a string.
     private static String GeneralParser(String expression){
         expression = expression.trim();
@@ -393,97 +210,9 @@ public final class Main {
         return expression;
     }
 
-    @Deprecated
-    private static String BracketsResolver(String expression){
-        if (!expression.contains("(") && !expression.contains(")"))
-            return expression;
-
-        StringBuilder builder = new StringBuilder();
-        StringBuilder sub_string = new StringBuilder();
-        int bracketCounter = 0;
-        boolean isInsideBracket = false;
-
-        for (int i = 0; i < expression.length(); i++){
-            char c = expression.charAt(i);
-            if (c == '('){
-                bracketCounter++;
-                if (!isInsideBracket)
-                    isInsideBracket = true;
-                else
-                    sub_string.append(c);
-            } else if (c == ')'){
-                bracketCounter--;
-                if (bracketCounter == 0) {
-                    isInsideBracket = false;
-                    if (sub_string.toString().contains("(") && sub_string.toString().contains(")")) {
-                        String sub = BracketsResolver(sub_string.toString());
-                        sub_string.setLength(0);
-                        sub_string.append(sub);
-                    }
-                    //why evaluate for only the operation? since, the function evaluator already solves
-                    //every single function, therefore no need to do any additional stuff here.
-                    builder.append(EvaluateOperation(sub_string.toString()));
-                    sub_string.setLength(0);
-                } else
-                    sub_string.append(c);
-            } else{
-                if (isInsideBracket){
-                    sub_string.append(c);
-                } else{
-                    builder.append(c);
-                }
-            }
-        }
-
-        expression = builder.toString();
-        return expression;
-    }
-
     private static String complexConverter(String expression){
         StringBuilder builder = new StringBuilder();
         StringBuilder currentStep = new StringBuilder();
-
-        //convert each operator into a binary operator.
-        /*operationsInterface last_ops = null;
-        for (int i = 0; i < expression.length(); i++){
-            char c = expression.charAt(i);
-
-            char a = 0;
-            if (i != expression.length() - 1)
-                a = expression.charAt(i + 1);
-            char p = 0;
-            if (i != 0)
-                p = expression.charAt(i - 1);
-
-            operationsInterface opInt = getCharAsAnOperator(c);
-            if (opInt != null){
-                if (last_ops != null){
-                    if (opInt.getOperator() == '+' || opInt.getOperator() == '-'){
-                        switch(last_ops.getType()){
-                            case TYPE_PRE :
-                            case TYPE_CONSTANT :
-                                builder.append(NEUTRAL_IDENTITY).append(neutral_token);
-                        }
-                    }else{
-                        builder.append(NEUTRAL_IDENTITY).append(neutral_token);
-                    }
-                }else{
-                    last_ops = opInt;
-                }
-                if ((p == '(' || p == 0) && (opInt.getOperator() != '+' && opInt.getOperator() != '-'))
-                    builder.append(NEUTRAL_IDENTITY).append(neutral_token);
-                builder.append(c);
-                if (a == ')' || a == 0)
-                    builder.append(NEUTRAL_IDENTITY).append(neutral_token);
-            }else{
-                last_ops = null;
-                builder.append(c);
-            }
-        }
-        expression = builder.toString();
-        builder.setLength(0);*/
-
-        //convert each number into a complex number
         outer_loop :
         for (int i = 0; i < expression.length(); i++){
             String c = String.valueOf(expression.charAt(i));
@@ -589,9 +318,13 @@ public final class Main {
                 if (c == ')'){
                     while(operators.hasNext()){
                         char p = operators.peek().charAt(0);
-                        if (p != '(')
+                        if (p != '(') {
+                            if (p == ',') {
+                                operators.pop();
+                                continue;
+                            }
                             output.push(operators.pop() + "");
-                        else {
+                        } else {
                             operators.pop();
                             break;
                         }
@@ -599,8 +332,21 @@ public final class Main {
                 }else if (c == '(')
                     operators.push(c + "");
                 else{
-                    if (c == ',')
+                    if (c == ',') {
+                        while (operators.hasNext()){
+                            char t = operators.peek().charAt(0);
+                            if (t == ',' || t == '('){
+                                if (t == ',') {
+                                    operators.pop();
+                                    operators.push(c + "");
+                                }
+                                break;
+                            } else {
+                                output.push(operators.pop());
+                            }
+                        }
                         continue;
+                    }
 
                     operationsInterface current_ops = getCharAsAnOperator(c);
                     if (operators.getPointerLocation() == -1) {
@@ -1403,115 +1149,6 @@ public final class Main {
         return opInt;
     }
 
-    @Deprecated
-    private static String convertFunctionString(String expression, String name){
-        ArrayList<String> chunks_main = new ArrayList<>();
-        ArrayList<String> chunks_sub = new ArrayList<>();
-        StringBuilder builder_main = new StringBuilder();
-        StringBuilder builder_sub = new StringBuilder();
-        StringBuilder builder = new StringBuilder();
-        boolean reverse = false;
-        int bracketCounter = 0;
-
-        for (int i = 0; i < expression.length(); i++){
-            char c = expression.charAt(i);
-            if (i == 0 && c == '(')
-                reverse = true;
-
-            if (c == '('){
-                if (bracketCounter == 0 && i != 0) {
-                    chunks_main.add(builder_main.toString());
-                    builder_main.setLength(0);
-                }
-                builder_sub.append(c);
-                bracketCounter++;
-                continue;
-            }
-            if (c == ')'){
-                bracketCounter--;
-                builder_sub.append(c);
-                if (bracketCounter == 0){
-                    if (i != expression.length() - 1 &&
-                            (expression.charAt(i + 1) + "").matches("[1234567890]"))
-                        builder_main.append('*');
-                    chunks_sub.add(builder_sub.toString());
-                    builder_sub.setLength(0);
-                }
-                continue;
-            }
-            if (bracketCounter != 0){
-                builder_sub.append(c);
-            }else{
-                builder_main.append(c);
-            }
-        }
-
-        if (!builder_main.toString().isEmpty())
-            chunks_main.add(builder_main.toString());
-
-        int size1 = chunks_main.size();
-        int size2 = chunks_sub.size();
-
-        int n = 0;
-        for (int i = 0; i < size1+size2; i++){
-            if (i % 2 == 0){
-                n = i / 2;
-                if (!reverse) {
-                    if (n < size1) {
-                        String chunk_cutOff = chunks_main.get(n).replace(name, String.valueOf(function_token));
-                        builder.append(chunk_cutOff);
-                    }
-                }else{
-                    if (n < size2) {
-                        String chunk_cutOff = chunks_sub.get(n);
-                        if (chunk_cutOff.contains(name) && chunks_main.size() == 0){
-                            chunk_cutOff = chunk_cutOff.replaceAll(name, String.valueOf(function_token));
-                            builder.append(chunk_cutOff);
-                        }else if (chunk_cutOff.contains(name) && n != 0 && !chunks_main.get(n-1).contains(name)) {
-                            chunk_cutOff = chunk_cutOff.replaceAll(name, String.valueOf(function_token));
-                            builder.append(chunk_cutOff);
-                        }else
-                            builder.append(chunks_sub.get(n));
-                    }
-                }
-            }else{
-                if (!reverse) {
-                    if (n < size2) {
-                        String chunk_cutOff = chunks_sub.get(n);
-                        if (chunk_cutOff.contains(name) && !chunks_main.get(n).contains(name)) {
-                            chunk_cutOff = chunk_cutOff.replaceAll(name, String.valueOf(function_token));
-                            builder.append(chunk_cutOff);
-                        }else
-                            builder.append(chunks_sub.get(n));
-                    }
-                }else{
-                    if (n < size1) {
-                        String chunk_cutOff = chunks_main.get(n).replace(name, String.valueOf(function_token));
-                        builder.append(chunk_cutOff);
-                    }
-                }
-            }
-        }
-        expression = builder.toString();
-        builder.setLength(0);
-        //there's no need to check for the after a symbol, because the general parser already solves for that.
-        //because the structure is like ")number" which allows the general parser to solve it already.
-        for (int i = 0; i < expression.length(); i++){
-            char c = expression.charAt(i);
-            char p = 0;
-            if (i != 0)
-                p = expression.charAt(i - 1);
-
-            if (c == function_token) {
-                if ((p + "").matches("[1234567890i]"))
-                    builder.append('*');
-            }
-            builder.append(c);
-        }
-        expression = builder.toString();
-        return expression;
-    }
-
     private static String SortResult(String result){
         result = result.replace(String.valueOf(complex_token), "");
         ComplexNumber cn = convertToComplexNumber(result);
@@ -1545,24 +1182,6 @@ public final class Main {
         throw new IllegalStateException("unexpected condition in the SortResult function");
     }
 
-    private static boolean checkOperatorPresence(String expression){
-        boolean isInsideToken = false;
-
-        for (int i = 0; i < expression.length(); i++){
-            char c = expression.charAt(i);
-            if (c == complex_token){
-                isInsideToken = !isInsideToken;
-            }
-            if (!Character.isDigit(c) && !isInsideToken) {
-                for (operationsInterface opInt : operations) {
-                    if (opInt.getOperator() == c)
-                        return true;
-                }
-            }
-        }
-        return false;
-    }
-
     private static ComplexNumber convertToComplexNumber(String complexString){
         ComplexNumber number = new ComplexNumber();
         StringBuilder currentStep = new StringBuilder();
@@ -1589,10 +1208,6 @@ public final class Main {
     private static String convertToComplexString(double value, boolean iota){
         return complex_token + (!iota ? value + "+" + 0 + "i" : 0 + (value < 0 ? "" : "+")
                 + value + "i") + complex_token;
-    }
-
-    private static String convertToComplexString(String neutral){
-        return complex_token + (neutral + "+" + 0 + "i") + complex_token;
     }
 
     private static String convertComplexToString(ComplexNumber cn){
@@ -1753,95 +1368,4 @@ public final class Main {
             }
         }
     }*/
-
-    @Deprecated
-    static class LazyStack<E> {
-
-        private final Object[] items;
-        private final int[] positionCounter;
-
-        private final int size;
-
-        @SuppressWarnings("Unchecked")
-        public LazyStack(int size){
-            items = new Object[size];//(E[]) Array.newInstance(clazz, size);
-
-            positionCounter = new int[size];
-
-            this.size = size;
-
-            for(int i = 0; i < this.size; i++){
-                positionCounter[i] = 0;
-            }
-        }
-
-        public void push(E item){
-            int freeIndex = -1;
-            for (int i = 0; i < size; i++){
-                if (positionCounter[i] == 0){
-                    freeIndex = i;
-                    positionCounter[i] = 1;
-                    break;
-                }
-            }
-            if (freeIndex == -1)
-                throw new IllegalStateException("the LazyStack is full, cannot add any more value");
-            items[freeIndex] = item;
-        }
-
-        public void push(E item, int index){
-            items[index] = item;
-            positionCounter[index] = 1;
-        }
-
-        @SuppressWarnings("unchecked")
-        public E pull(int index){
-            if (index > size - 1 || index < 0){
-                throw new IllegalStateException("the provided index is beyond the LazyStack size");
-            }
-            return (E)items[index];
-        }
-
-        public E pullFirst(){
-            return pull(0);
-        }
-
-        public void popFirst(){
-            pop(0);
-        }
-
-        public void pop(int index){
-            if (index > size - 1 || index < 0){
-                throw new IllegalStateException("the provided index is beyond the LazyStack size");
-            }
-            items[index] = null;
-            positionCounter[index] = 0;
-            for (int i = index; i < size - 1; i++){
-                items[i] = items[i+1];
-                items[i+1] = null;
-                positionCounter[i] = positionCounter[i+1];
-                positionCounter[i+1] = 0;
-            }
-        }
-
-        public int getSize(){
-            return this.size;
-        }
-
-        public void popAll(){
-            for (int i = 0; i < size; i++){
-                items[i] = null;
-                positionCounter[i] = 0;
-            }
-        }
-
-        public boolean isEmpty(){
-            for(int i = 0; i < size; i++){
-                if (items[i] != null) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
 }
