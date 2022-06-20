@@ -1,11 +1,5 @@
 package com.expression_parser_v2_0.console;
 
-/*
-*todo : create a new branch and commit the project there, do not merge into the master branch yet.*/
-
-import java.util.ArrayList;
-import java.util.Objects;
-
 //no inheritance.
 public final class Main {
     //no instance creation.
@@ -43,8 +37,8 @@ public final class Main {
             complex_token = '$',
             function_token = '@';
 
-    private static ArrayList<operationsInterface> operations = new ArrayList<>();
-    private static ArrayList<functionsInterface> functions = new ArrayList<>();
+    private static Stack<operationsInterface> operations = new Stack<>();
+    private static Stack<functionsInterface> functions = new Stack<>();
 
     public static final int
             IOTA_FIRST = 1,
@@ -102,11 +96,11 @@ public final class Main {
     }
 
     public static void registerOperation(operationsInterface opInt){
-        operations.add(opInt);
+        operations.push(opInt);
     }
 
     public static void registerFunction(functionsInterface fs){
-        functions.add(fs);
+        functions.push(fs);
     }
 
     public static String Evaluate(String expression){
@@ -137,7 +131,9 @@ public final class Main {
         expression = expression.replaceAll("i\\(", "i*\\(");
 
         Stack<String> fn_names = new Stack<>();
-        for (functionsInterface fnInt : functions){
+        functions.reset();
+        while (functions.hasNextItem()){
+            functionsInterface fnInt = functions.get();
             String name = fnInt.getFunctionName();
             if (!fn_names.contains(name)){
                 expression = expression.replace(name, function_token + name);
@@ -147,7 +143,9 @@ public final class Main {
 
         //create name array
         StringBuilder nameBuilder = new StringBuilder();
-        for (operationsInterface opInt : operations){
+        operations.reset();
+        while (operations.hasNextItem()){
+            operationsInterface opInt = operations.get();
             if (opInt.getOperationNames() != null) {
                 for (String name : opInt.getOperationNames()){
                     if (!name.isEmpty()) {
@@ -233,7 +231,9 @@ public final class Main {
                     char p;
                     if (i != 0) {
                         p = expression.charAt(i - 1);
-                        for (operationsInterface opInt : operations) {
+                        operations.reset();
+                        while (operations.hasNextItem()) {
+                            operationsInterface opInt = operations.get();
                             if (opInt.getOperator() == p) {
                                 if (opInt.getType() == TYPE_POST || opInt.getType() == TYPE_BOTH) {
                                     currentStep.append(c);
@@ -412,7 +412,9 @@ public final class Main {
                 for (int j = params.length - 1; j >= 0; j--) {
                     params[j] = exp.pop();
                 }
-                for (functionsInterface fn : functions) {
+                functions.reset();
+                while (functions.hasNextItem()) {
+                    functionsInterface fn = functions.get();
                     if (fn.getFunctionName().equals(name)) {
                         try {
                             ComplexNumber result = functionDispatcher(params, fn);
@@ -461,7 +463,9 @@ public final class Main {
         expression = functionUpdater(expression);
 
         Stack<String> fn_names = new Stack<>();
-        for (functionsInterface fnInt : functions){
+        functions.reset();
+        while (functions.hasNextItem()){
+            functionsInterface fnInt = functions.get();
             String name = fnInt.getFunctionName();
             if (!fn_names.contains(name)){
                 expression = expression.replace(name, function_token + name);
@@ -530,7 +534,9 @@ public final class Main {
             if (i != expression.length() - 1)
                 a = expression.charAt(i + 1);
 
-            for (operationsInterface opInt : operations){
+            operations.reset();
+            while (operations.hasNextItem()){
+                operationsInterface opInt = operations.get();
                 if (opInt.getOperator() == c) {
                     builder.append(getImplicitExp(opInt, p, a));
                     continue outer_loop;
@@ -1142,7 +1148,9 @@ public final class Main {
 
     private static operationsInterface getCharAsAnOperator(char c){
         operationsInterface opInt = null;
-        for (operationsInterface ops : operations){
+        operations.reset();
+        while (operations.hasNextItem()){
+            operationsInterface ops = operations.get();
             if (ops.getOperator() == c)
                 opInt = ops;
         }
@@ -1268,6 +1276,9 @@ public final class Main {
         //internal Stack pointer;
         private int pointer = -1;
 
+        //for iteration but no actual data modification.
+        private int pseudo_counter = -1;
+
         Stack(int size) {
             items = new Object[size];
         }
@@ -1329,14 +1340,16 @@ public final class Main {
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         private boolean contains(T item){
             for(Object op : items){
-                // noinspection unchecked
-                if (Objects.equals((T) op, item)){
+                if (op != null && op.equals(item)){
                     return true;
                 }
             }
             return false;
         }
 
+        private boolean isEmpty(){
+            return getLength() == 0;
+        }
         private int getLength(){
             return items.length;
         }
@@ -1344,28 +1357,21 @@ public final class Main {
         private int getPointerLocation() {
             return pointer;
         }
+
+        //iteration purpose functions.
+        public boolean hasNextItem(){
+            return pseudo_counter >= 0;
+        }
+
+        @SuppressWarnings("unchecked")
+        public T get(){
+            T item = (T) items[pseudo_counter];
+            pseudo_counter--;
+            return item;
+        }
+
+        public void reset(){
+            pseudo_counter = pointer;
+        }
     }
-
-    //StringBuilder
-    /*static class builder{
-        //backing array
-        private char[] arr;
-
-        //pointer
-        private int pointer = -1;
-
-        builder(int size){
-            arr = new char[size];
-        }
-
-        builder (){
-            this(50);
-        }
-
-        public void append(String str){
-            for (int i = 0; i < str.length(); i++){
-
-            }
-        }
-    }*/
 }
