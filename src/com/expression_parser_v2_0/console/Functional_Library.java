@@ -3,12 +3,12 @@ package com.expression_parser_v2_0.console;
 import static com.expression_parser_v2_0.console.Main.*;
 
 public enum Functional_Library implements functionsInterface{
-    SIN1("sin", new int[]{ARGUMENT_DOUBLE}, 1),
+    SIN1("sin", new int[]{ARGUMENT_REAL}, 1),
     SIN2("sin", new int[]{ARGUMENT_COMPLEX}, 2),
     SIN3("sin", new int[]{ARGUMENT_IOTA}, 3),
-    COS1("cos", new int[]{ARGUMENT_DOUBLE}, 1),
+    COS1("cos", new int[]{ARGUMENT_REAL}, 1),
     COS2("cos", new int[]{ARGUMENT_COMPLEX}, 2),
-    MIN1("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_DOUBLE}, 1),
+    MIN1("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_REAL}, 1),
     MIN2("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_IOTA}, 2),
     MIN3("min", new int[]{ARGUMENT_ARRAY, ARGUMENT_COMPLEX}, 3);
 
@@ -76,16 +76,39 @@ public enum Functional_Library implements functionsInterface{
                     break;
             }
         }else if (name.equals("min")){
-            resultFlag = RESULT_REAL;
             switch(id){
                 case 1 :
-                    System.out.println("double list : " + arguments.length);
+                    double min = Double.MAX_VALUE;
+                    for (Argument value : arguments) {
+                        if (value.getDoubleArgument() < min)
+                            min = value.getDoubleArgument();
+                    }
+                    resultFlag = RESULT_REAL;
+                    doubleResult = min;
                     break;
                 case 2 :
-                    System.out.println("iota list : " + arguments.length);
+                    min = Double.MAX_VALUE;
+                    for (Argument argument : arguments) {
+                        if (argument.getDoubleArgument() < min)
+                            min = argument.getDoubleArgument();
+                    }
+                    resultFlag = RESULT_IOTA;
+                    doubleResult = min;
+                    break;
+                case 3 :
+                    int index = 0;
+                    min = Double.MAX_VALUE;
+                    for(int i = 0; i < arguments.length; i++){
+                        Argument argument = arguments[i];
+                        if (argument.getComplexArgument().real + argument.getComplexArgument().iota < min){
+                            min = argument.getComplexArgument().real + argument.getComplexArgument().iota;
+                            index = i;
+                        }
+                    }
+                    resultFlag = RESULT_COMPLEX;
+                    complexResult = arguments[index].getComplexArgument();
                     break;
             }
-
         }else if (name.equals("test")){
             System.out.println("test is called");
         }

@@ -72,7 +72,11 @@ public enum Operational_Library implements operationsInterface {
 
     @Override
     public void function() {
-
+        switch(operator){
+            case ';' :
+                doubleResult = 100;
+                resultFlag = RESULT_REAL;
+        }
     }
 
     @Override
@@ -83,6 +87,15 @@ public enum Operational_Library implements operationsInterface {
                     resultFlag = RESULT_REAL;
                     doubleResult = Math.sqrt(d);
                 }
+                break;
+            case '!' :
+                double result = 1;
+                for(int i = (int)d; i > 0; i--){
+                    result *= i;
+                }
+                resultFlag = RESULT_REAL;
+                doubleResult = result;
+                break;
         }
     }
 

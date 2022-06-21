@@ -6,9 +6,9 @@ import static com.expression_parser_v2_0.console.Main.Evaluate;
 public class Sample {
 
     public static void main(String[] args){
+        registerLibraries();
         Scanner scn = new Scanner(System.in);
         String expression = scn.nextLine();
-        registerLibraries();
         double time1 = System.nanoTime();
         String str = Evaluate(expression);
         double time2 = System.nanoTime();
