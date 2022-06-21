@@ -37,8 +37,15 @@ public final class Main {
             complex_token = '$',
             function_token = '@';
 
-    private static Stack<operationsInterface> operations = new Stack<>();
-    private static Stack<functionsInterface> functions = new Stack<>();
+    private static Stack<operationsInterface> operations;
+    private static Stack<functionsInterface> functions;
+
+    static {
+        operations = new Stack<>();
+        functions = new Stack<>();
+        operations.iterateRestrict();
+        functions.iterateRestrict();
+    }
 
     public static final int
             IOTA_FIRST = 1,
@@ -50,7 +57,7 @@ public final class Main {
             RESULT_REAL = 1,
             RESULT_IOTA = 2,
             RESULT_COMPLEX = 3,
-            ARGUMENT_DOUBLE = 1,
+            ARGUMENT_REAL = 1,
             ARGUMENT_IOTA = 2,
             ARGUMENT_COMPLEX = 3,
             ARGUMENT_STRING = 4,
@@ -61,9 +68,9 @@ public final class Main {
             TYPE_CONSTANT = 3,
             ANGLE_MODE_RADIAN = 0,
             ANGLE_MODE_DEGREE = 1,
-            PRECEDENCE_LEAST = 1,
-            PRECEDENCE_MEDIUM = 100,
-            PRECEDENCE_MAX = 500;
+            PRECEDENCE_LEAST = 250,
+            PRECEDENCE_MEDIUM = 500,
+            PRECEDENCE_MAX = 750;
 
     private static final int
             PRECEDENCE_FUNCTION = 1000;
@@ -96,10 +103,62 @@ public final class Main {
     }
 
     public static void registerOperation(operationsInterface opInt){
+        registerOperation(opInt, false);
+    }
+
+    public static void registerOperation(operationsInterface opInt, boolean override){
+        if (operations.isEmpty()) {
+            operations.push(opInt);
+            return;
+        }
+        operations.reset();
+        while(operations.loop()){
+            operationsInterface op = operations.get();
+            if (op.getOperator() == opInt.getOperator()){
+                if (!override){
+                    throw new ExpressionException("An operation already exists, " +
+                            "with the same operator : " + op.getOperator());
+                }else{
+                    operations.replace(opInt);
+                    return;
+                }
+            }
+        }
         operations.push(opInt);
     }
 
     public static void registerFunction(functionsInterface fs){
+        registerFunction(fs, false);
+    }
+
+    public static void registerFunction(functionsInterface fs, boolean override){
+        if (functions.isEmpty()) {
+            functions.push(fs);
+            return;
+        }
+        functions.reset();
+        outer_loop :
+        while(functions.loop()){
+            functionsInterface fsInt = functions.get();
+            if (fsInt.getFunctionName().equals(fs.getFunctionName())) {
+                int[] map1 = fsInt.getFunctionMap();
+                int[] map2 = fs.getFunctionMap();
+                int len1 = map1.length;
+                int len2 = map2.length;
+                if (len1 == len2) {
+                    for (int i = 0; i < len1; i++) {
+                        if (map1[i] != map2[i])
+                            break outer_loop;
+                    }
+                    if (!override)
+                        throw new ExpressionException("A function with the same name : " +
+                                fs.getFunctionName() + ", and same map already exists");
+                    else
+                        functions.replace(fs);
+                    return;
+                }
+            }
+        }
         functions.push(fs);
     }
 
@@ -132,7 +191,7 @@ public final class Main {
 
         Stack<String> fn_names = new Stack<>();
         functions.reset();
-        while (functions.hasNextItem()){
+        while (functions.loop()){
             functionsInterface fnInt = functions.get();
             String name = fnInt.getFunctionName();
             if (!fn_names.contains(name)){
@@ -144,7 +203,7 @@ public final class Main {
         //create name array
         StringBuilder nameBuilder = new StringBuilder();
         operations.reset();
-        while (operations.hasNextItem()){
+        while (operations.loop()){
             operationsInterface opInt = operations.get();
             if (opInt.getOperationNames() != null) {
                 for (String name : opInt.getOperationNames()){
@@ -232,7 +291,7 @@ public final class Main {
                     if (i != 0) {
                         p = expression.charAt(i - 1);
                         operations.reset();
-                        while (operations.hasNextItem()) {
+                        while (operations.loop()) {
                             operationsInterface opInt = operations.get();
                             if (opInt.getOperator() == p) {
                                 if (opInt.getType() == TYPE_POST || opInt.getType() == TYPE_BOTH) {
@@ -413,7 +472,7 @@ public final class Main {
                     params[j] = exp.pop();
                 }
                 functions.reset();
-                while (functions.hasNextItem()) {
+                while (functions.loop()) {
                     functionsInterface fn = functions.get();
                     if (fn.getFunctionName().equals(name)) {
                         try {
@@ -464,7 +523,7 @@ public final class Main {
 
         Stack<String> fn_names = new Stack<>();
         functions.reset();
-        while (functions.hasNextItem()){
+        while (functions.loop()){
             functionsInterface fnInt = functions.get();
             String name = fnInt.getFunctionName();
             if (!fn_names.contains(name)){
@@ -535,7 +594,7 @@ public final class Main {
                 a = expression.charAt(i + 1);
 
             operations.reset();
-            while (operations.hasNextItem()){
+            while (operations.loop()){
                 operationsInterface opInt = operations.get();
                 if (opInt.getOperator() == c) {
                     builder.append(getImplicitExp(opInt, p, a));
@@ -1020,7 +1079,7 @@ public final class Main {
             for (int i = 0; i < map.length; i++) {
                 int id = map[i];
                 switch (id) {
-                    case ARGUMENT_DOUBLE:
+                    case ARGUMENT_REAL:
                         try {
                             ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
                             if (cn.real != 0 && cn.iota != 0)
@@ -1075,7 +1134,7 @@ public final class Main {
             int type = map[1];
             for (int i = 0; i < sub_expression.length; i++){
                 switch(type){
-                    case ARGUMENT_DOUBLE:
+                    case ARGUMENT_REAL:
                         try {
                             ComplexNumber cn = convertToComplexNumber(sub_expression[i]);
                             if (cn.real != 0 && cn.iota != 0)
@@ -1149,10 +1208,12 @@ public final class Main {
     private static operationsInterface getCharAsAnOperator(char c){
         operationsInterface opInt = null;
         operations.reset();
-        while (operations.hasNextItem()){
+        while (operations.loop()){
             operationsInterface ops = operations.get();
-            if (ops.getOperator() == c)
+            if (ops.getOperator() == c) {
                 opInt = ops;
+                break;
+            }
         }
         return opInt;
     }
@@ -1279,6 +1340,9 @@ public final class Main {
         //for iteration but no actual data modification.
         private int pseudo_counter = -1;
 
+        //for restricting access to certain functions depending on the nature of the stack.
+        private boolean restriction = false;
+
         Stack(int size) {
             items = new Object[size];
         }
@@ -1348,10 +1412,10 @@ public final class Main {
         }
 
         private boolean isEmpty(){
-            return getLength() == 0;
+            return pointer == -1;
         }
         private int getLength(){
-            return items.length;
+            return pointer;
         }
 
         private int getPointerLocation() {
@@ -1359,18 +1423,37 @@ public final class Main {
         }
 
         //iteration purpose functions.
-        public boolean hasNextItem(){
+        private boolean loop(){
+            if (!restriction)
+                throw new RuntimeException("operations not valid for iterate unrestricted stacks");
             return pseudo_counter >= 0;
         }
 
         @SuppressWarnings("unchecked")
-        public T get(){
+        private T get(){
+            if (!restriction)
+                throw new RuntimeException("operation not valid for iterate unrestricted stacks");
             T item = (T) items[pseudo_counter];
             pseudo_counter--;
             return item;
         }
 
-        public void reset(){
+        private void replace(T item){
+            if (!restriction)
+                throw new RuntimeException("operation not valid for iterate unrestricted stacks");
+            pseudo_counter++;
+            items[pseudo_counter] = item;
+            pseudo_counter--;
+        }
+
+        //A one way operation. once set the stacks' nature cannot be changed.
+        private void iterateRestrict(){
+            restriction = true;
+        }
+
+        private void reset(){
+            if (!restriction)
+                throw new RuntimeException("operation not valid for iterate unrestricted stacks");
             pseudo_counter = pointer;
         }
     }
