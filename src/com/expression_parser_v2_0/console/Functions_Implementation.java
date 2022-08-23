@@ -13,7 +13,7 @@ public abstract class Functions_Implementation implements functionsInterface {
     }
 
     @Override
-    public String getFunctionName() {
+    public String[] getFunctionNames() {
         throw new UnsupportedOperationException("function not implemented yet");
     }
 

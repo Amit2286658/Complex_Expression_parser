@@ -131,7 +131,7 @@ public final class Main {
     }
 
     public interface functionsInterface{
-        String getFunctionName();
+        String[] getFunctionNames();
         int[] getFunctionMap();
         int getId();
         int getResultFlag();
@@ -181,7 +181,7 @@ public final class Main {
         outer_loop :
         while(functions.loop()){
             functionsInterface fsInt = functions.get();
-            if (fsInt.getFunctionName().equals(fs.getFunctionName())) {
+            if (fsInt.getFunctionNames().equals(fs.getFunctionNames())) {
                 int[] map1 = fsInt.getFunctionMap();
                 int[] map2 = fs.getFunctionMap();
                 int len1 = map1.length;
@@ -197,7 +197,7 @@ public final class Main {
                     }
                     if (!override)
                         throw new ExpressionException("A function with the same name : " +
-                                fs.getFunctionName() + ", and same map already exists");
+                                fs.getFunctionNames()[0] + ", and same map already exists");
                     else
                         functions.replace(fs);
                     return;
@@ -269,11 +269,14 @@ public final class Main {
         functions.reset();
         while (functions.loop()){
             functionsInterface fnInt = functions.get();
-            String name = fnInt.getFunctionName();
-            if (!fn_names.contains(name)){
-                expression = expression.replace(name, function_token + name);
-                fn_names.push(name);
+            String[] name = fnInt.getFunctionNames();
+            for(String nm : name){
+                if (!fn_names.contains(nm)){
+                    expression = expression.replace(nm, function_token + nm);
+                    fn_names.push(nm);
+                }
             }
+
         }
 
         //create name array
@@ -621,20 +624,24 @@ public final class Main {
                 functions.reset();
                 while(functions.loop()){
                     functionsInterface fnInt = functions.get();
-                    if (fnInt.getFunctionName().equals(fn_name)) {
-                        sub_stack.keepCount();
-                        pointerOutput.keepCount();
-                        try {
-                            DispatchParcel parcel = functionDispatcher(sub_stack, fnInt);
-                            pointerOutput.push(parcel);
-                            output.push(pointer_token + "");
-                            continue outer_loop;
-                        } catch (Exception e){
-                            sub_stack.resetToCount();
-                            bracketReplacement(sub_stack);
-                            pointerOutput.resetToCount();
+                    String[] name = fnInt.getFunctionNames();
+                    for(String nm : name){
+                        if (nm.equals(fn_name)) {
+                            sub_stack.keepCount();
+                            pointerOutput.keepCount();
+                            try {
+                                DispatchParcel parcel = functionDispatcher(sub_stack, fnInt);
+                                pointerOutput.push(parcel);
+                                output.push(pointer_token + "");
+                                continue outer_loop;
+                            } catch (Exception e){
+                                sub_stack.resetToCount();
+                                bracketReplacement(sub_stack);
+                                pointerOutput.resetToCount();
+                            }
                         }
                     }
+
                 }
                 throw new IllegalStateException("the given function name or" +
                         " argument doesn't quite add up");
@@ -844,11 +851,14 @@ public final class Main {
         functions.reset();
         while (functions.loop()){
             functionsInterface fnInt = functions.get();
-            String name = fnInt.getFunctionName();
-            if (!fn_names.contains(name)){
-                expression = expression.replace(name, function_token + name);
-                fn_names.push(name);
+            String[] name = fnInt.getFunctionNames();
+            for(String nm : name){
+                if (!fn_names.contains(nm)){
+                    expression = expression.replace(nm, function_token + nm);
+                    fn_names.push(nm);
+                }
             }
+
         }
         return expression;
     }

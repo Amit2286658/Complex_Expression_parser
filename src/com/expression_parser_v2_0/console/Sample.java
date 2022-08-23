@@ -1,5 +1,6 @@
 package com.expression_parser_v2_0.console;
 
+import functions.Sine;
 import operations.Addition;
 import operations.Division;
 import operations.Multiplication;
@@ -15,6 +16,7 @@ public class Sample {
         new Subtraction();
         new Multiplication();
         new Division();
+        new Sine();
 
         Scanner scn = new Scanner(System.in);
         String expression = scn.nextLine();
