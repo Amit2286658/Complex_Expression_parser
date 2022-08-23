@@ -1,24 +1,27 @@
 package com.expression_parser_v2_0.console;
 
+import operations.Addition;
+import operations.Division;
+import operations.Multiplication;
+import operations.Subtraction;
+
 import java.util.Scanner;
-import static com.expression_parser_v2_0.console.Main.Evaluate;
+import static com.expression_parser_v2_0.console.Main.*;
 
 public class Sample {
 
     public static void main(String[] args){
-        registerLibraries();
+        new Addition();
+        new Subtraction();
+        new Multiplication();
+        new Division();
+
         Scanner scn = new Scanner(System.in);
         String expression = scn.nextLine();
-        double time1 = System.nanoTime();
+        double time1 = System.currentTimeMillis();
         String str = Evaluate(expression);
-        double time2 = System.nanoTime();
+        double time2 = System.currentTimeMillis();
         System.out.println(str);
-        System.out.println("time taken : " + (time2 - time1)/1000000 + " ms");
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void registerLibraries(){
-        Operational_Library.values();
-        Functional_Library.values();
+        System.out.println("time taken : " + (time2 - time1) + " ms");
     }
 }
