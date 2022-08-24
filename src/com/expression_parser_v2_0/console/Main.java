@@ -133,7 +133,10 @@ public final class Main {
     public interface functionsInterface{
         String[] getFunctionNames();
         int[] getFunctionMap();
+
+        //useful in enums.
         int getId();
+
         int getResultFlag();
         double getReal();
         double getIota();
@@ -181,7 +184,17 @@ public final class Main {
         outer_loop :
         while(functions.loop()){
             functionsInterface fsInt = functions.get();
-            if (fsInt.getFunctionNames().equals(fs.getFunctionNames())) {
+            boolean match = false;
+
+            function_in_list :
+            for(String str : fsInt.getFunctionNames())
+                for(String str1 : fs.getFunctionNames())
+                    if (str1.equals(str)){
+                        match = true;
+                        break function_in_list;
+                    }
+
+            if (match) {
                 int[] map1 = fsInt.getFunctionMap();
                 int[] map2 = fs.getFunctionMap();
                 int len1 = map1.length;
