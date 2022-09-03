@@ -1,29 +1,29 @@
-package operations;
+package com.expression_parser_v2_0.console.library.operations;
 
-import com.expression_parser_v2_0.console.Operations_Implementation;
+import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
-import static com.expression_parser_v2_0.console.Main.*;
+import static com.expression_parser_v2_0.console.core.constants.*;
 
-public class Addition extends Operations_Implementation {
+public class Subtraction extends Operations_Implementation {
 
     int resultFlag;
     ComplexNumber complexResult;
     double realResult;
     double iotaResult;
-    String resultString;
 
-    public Addition() {
+    public Subtraction() {
         super();
     }
 
     @Override
     public String[] getOperationNames() {
-        return new String[]{"Add", "add", "ADD", "Plus"};
+        return new String[]{"Minus", "Subtract"};
     }
 
     @Override
     public char getOperator() {
-        return '+';
+        return '-';
     }
 
     @Override
@@ -52,11 +52,6 @@ public class Addition extends Operations_Implementation {
     }
 
     @Override
-    public String getString() {
-        return resultString;
-    }
-
-    @Override
     public ComplexNumber getComplex() {
         return complexResult;
     }
@@ -65,23 +60,23 @@ public class Addition extends Operations_Implementation {
     public void function(double d1, double d2, int iotaStatus) {
         switch(iotaStatus){
             case IOTA_BOTH :
-                iotaResult = d1 + d2;
+                iotaResult = d1 - d2;
                 resultFlag = RESULT_IOTA;
                 break;
             case IOTA_NONE :
-                realResult = d1 + d2;
+                realResult = d1 - d2;
                 resultFlag = RESULT_REAL;
                 break;
             case IOTA_FIRST :
                 complexResult = new ComplexNumber();
-                complexResult.real = d2;
+                complexResult.real = d2 * -1;
                 complexResult.iota = d1;
                 resultFlag = RESULT_COMPLEX;
                 break;
             case IOTA_SECOND :
                 complexResult = new ComplexNumber();
                 complexResult.real = d1;
-                complexResult.iota = d2;
+                complexResult.iota = d2 * -1;
                 resultFlag = RESULT_COMPLEX;
                 break;
         }
@@ -91,12 +86,12 @@ public class Addition extends Operations_Implementation {
     public void function(ComplexNumber c1, double d2, int iotaStatus) {
         switch(iotaStatus) {
             case IOTA_TRUE :
-                c1.iota += d2;
+                c1.iota -= d2;
                 complexResult = c1;
                 resultFlag = RESULT_COMPLEX;
                 break;
             case IOTA_FALSE :
-                c1.real += d2;
+                c1.real -= d2;
                 complexResult = c1;
                 resultFlag = RESULT_COMPLEX;
                 break;
@@ -107,12 +102,12 @@ public class Addition extends Operations_Implementation {
     public void function(double d1, ComplexNumber c2, int iotaStatus) {
         switch(iotaStatus) {
             case IOTA_TRUE :
-                c2.iota += d1;
+                c2.iota = d1 - c2.iota;
                 complexResult = c2;
                 resultFlag = RESULT_COMPLEX;
                 break;
             case IOTA_FALSE :
-                c2.real += d1;
+                c2.real = d1 - c2.real;
                 complexResult = c2;
                 resultFlag = RESULT_COMPLEX;
                 break;
@@ -121,15 +116,9 @@ public class Addition extends Operations_Implementation {
 
     @Override
     public void function(ComplexNumber c1, ComplexNumber c2) {
-        c2.real += c1.real;
-        c2.iota += c1.iota;
+        c2.real = c1.real - c2.real;
+        c2.iota = c1.iota - c2.iota;
         complexResult = c2;
         resultFlag = RESULT_COMPLEX;
-    }
-
-    @Override
-    public void function(String str1, String str2) {
-        resultString = str1 + str2;
-        resultFlag = RESULT_STRING;
     }
 }

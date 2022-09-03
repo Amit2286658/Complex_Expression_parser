@@ -1,16 +1,18 @@
-package functions;
+package com.expression_parser_v2_0.console.library.functions;
 
-import com.expression_parser_v2_0.console.Functions_Implementation;
-import com.expression_parser_v2_0.console.Main;
+import com.expression_parser_v2_0.console.core.Argument;
+import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.library.Functions_Implementation;
+import com.expression_parser_v2_0.console.core.Main;
 
-import static com.expression_parser_v2_0.console.Main.*;
+import static com.expression_parser_v2_0.console.core.constants.*;
 
 public class Sine_iota extends Functions_Implementation {
 
     int resultFlag;
     double real;
     double iota;
-    Main.ComplexNumber cn;
+    ComplexNumber cn;
 
     public Sine_iota() {
         super();
@@ -47,18 +49,14 @@ public class Sine_iota extends Functions_Implementation {
     }
 
     @Override
-    public Main.ComplexNumber getComplex() {
+    public ComplexNumber getComplex() {
         return cn;
     }
 
     @Override
-    public void function(Main.Argument[] arguments, int id) {
-        if (id == 2){
-            real = Math.sin(Main.getAngleMode() == ANGLE_MODE_RADIAN ? arguments[0].getRealArgument() :
-                    Math.toRadians(arguments[0].getRealArgument()));
-            resultFlag = RESULT_REAL;
-            return;
-        }
-        super.function(arguments, id);
+    public void function(Argument[] arguments, int id) {
+        real = Math.sin(Main.getAngleMode() == ANGLE_MODE_RADIAN ? arguments[0].getIotaArgument() :
+                Math.toRadians(arguments[0].getIotaArgument()));
+        resultFlag = RESULT_REAL;
     }
 }

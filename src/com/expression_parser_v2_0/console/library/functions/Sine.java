@@ -1,9 +1,11 @@
-package functions;
+package com.expression_parser_v2_0.console.library.functions;
 
-import com.expression_parser_v2_0.console.Functions_Implementation;
-import com.expression_parser_v2_0.console.Main;
+import com.expression_parser_v2_0.console.core.Argument;
+import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.library.Functions_Implementation;
+import com.expression_parser_v2_0.console.core.Main;
 
-import static com.expression_parser_v2_0.console.Main.*;
+import static com.expression_parser_v2_0.console.core.constants.*;
 
 public class Sine extends Functions_Implementation {
 
@@ -53,12 +55,8 @@ public class Sine extends Functions_Implementation {
 
     @Override
     public void function(Argument[] arguments, int id) {
-        if (id == 1){
-            real = Math.sin(Main.getAngleMode() == ANGLE_MODE_RADIAN ? arguments[0].getRealArgument() :
-                    Math.toRadians(arguments[0].getRealArgument()));
-            resultFlag = RESULT_REAL;
-            return;
-        }
-        super.function(arguments, id);
+        real = Math.sin(Main.getAngleMode() == ANGLE_MODE_RADIAN ? arguments[0].getRealArgument() :
+                Math.toRadians(arguments[0].getRealArgument()));
+        resultFlag = RESULT_REAL;
     }
 }

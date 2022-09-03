@@ -1,14 +1,14 @@
-package com.expression_parser_v2_0.console;
+package demo;
 
-import functions.Sine;
-import functions.Sine_iota;
-import operations.Addition;
-import operations.Division;
-import operations.Multiplication;
-import operations.Subtraction;
+import com.expression_parser_v2_0.console.library.functions.Sine;
+import com.expression_parser_v2_0.console.library.functions.Sine_iota;
+import com.expression_parser_v2_0.console.library.operations.Addition;
+import com.expression_parser_v2_0.console.library.operations.Division;
+import com.expression_parser_v2_0.console.library.operations.Multiplication;
+import com.expression_parser_v2_0.console.library.operations.Subtraction;
 
 import java.util.Scanner;
-import static com.expression_parser_v2_0.console.Main.*;
+import static com.expression_parser_v2_0.console.core.Main.*;
 
 public class Sample {
 

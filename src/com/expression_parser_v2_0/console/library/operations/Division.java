@@ -1,8 +1,9 @@
-package operations;
+package com.expression_parser_v2_0.console.library.operations;
 
-import com.expression_parser_v2_0.console.Operations_Implementation;
+import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
-import static com.expression_parser_v2_0.console.Main.*;
+import static com.expression_parser_v2_0.console.core.constants.*;
 
 public class Division extends Operations_Implementation {
 

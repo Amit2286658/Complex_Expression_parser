@@ -1,4 +1,7 @@
-package com.expression_parser_v2_0.console;
+package com.expression_parser_v2_0.console.core;
+
+import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.tokens.*;
 
 //no inheritance.
 public final class Main {
@@ -18,7 +21,7 @@ public final class Main {
 
     //when true, the entered angle will be converted into the radians since
     //that's the default accepting parameter
-    //for the java math functions, when false, no conversion will happen.
+    //for the java math com.expression_parser_v2_0.console.library.functions, when false, no conversion will happen.
     private static boolean use_degree = true;
 
     public static int getAngleMode() {
@@ -34,13 +37,6 @@ public final class Main {
             throw new IllegalArgumentException("unknown angle mode");
     }
 
-    private static final char
-            complex_token = '$',
-            function_token = '@',
-            operation_token = '_',
-            pointer_token = '#',
-            string_token = '"';
-
     private static Stack<operationsInterface> operations;
     private static Stack<functionsInterface> functions;
     private static Stack<DispatchParcel> pointerOutput;
@@ -53,98 +49,11 @@ public final class Main {
         functions.iterateRestrict();
     }
 
-    public static final int
-            IOTA_FIRST = 1,
-            IOTA_SECOND = 2,
-            IOTA_BOTH = 3,
-            IOTA_NONE = 0,
-            IOTA_TRUE = 1,
-            IOTA_FALSE = 0,
-            RESULT_REAL = 1,
-            RESULT_IOTA = 2,
-            RESULT_COMPLEX = 3,
-            RESULT_STRING = 4,
-            RESULT_SET = 5,
-            ELEMENT_REAL = 1,
-            ELEMENT_IOTA = 2,
-            ELEMENT_COMPLEX = 3,
-            ELEMENT_STRING = 4,
-            ELEMENT_SET = 5,
-            ARGUMENT_REAL = 1,
-            ARGUMENT_IOTA = 2,
-            ARGUMENT_COMPLEX = 3,
-            ARGUMENT_STRING = 4,
-            ARGUMENT_SET = 5,
-            ARGUMENT_ARRAY = 6,
-            TYPE_PRE = 0,
-            TYPE_POST = 1,
-            TYPE_BOTH = 2,
-            TYPE_CONSTANT = 3,
-            ANGLE_MODE_RADIAN = 0,
-            ANGLE_MODE_DEGREE = 1,
-            PRECEDENCE_LEAST = 250,
-            PRECEDENCE_MEDIUM = 500,
-            PRECEDENCE_MAX = 750;
-
     private static final int
             PRECEDENCE_FUNCTION = 1000,
             DISPATCHED_TYPE_COMPLEX = 1,
             DISPATCHED_TYPE_SET = 2,
             DISPATCHED_TYPE_STRING = 3;
-
-    public interface operationsInterface {
-        String[] getOperationNames();
-        char getOperator();
-        int getPrecedence();
-        int getType();
-        int getResultFlag();
-        double getReal();
-        double getIota();
-        ComplexNumber getComplex();
-        Set getSet();
-        String getString();
-        void function();
-        void function(double d, int iotaStatus);
-        void function(double d1, double d2, int iotaStatus);
-
-        void function(ComplexNumber cn);
-        void function(ComplexNumber c1, double d2, int iotaStatus);
-        void function(double d1, ComplexNumber c2, int iotaStatus);
-        void function(ComplexNumber c1, ComplexNumber c2);
-
-        void function(Set s);
-        void function(Set s1, double d1, int iotaStatus);
-        void function(double d1, Set s2, int iotaStatus);
-        void function(Set s1, Set s2);
-
-        void function(String str);
-        void function(String str1, double d2, int iotaStatus);
-        void function(double d1, String str2, int iotaStatus);
-        void function(String str1, String str2);
-
-        void function(ComplexNumber c1, Set s2);
-        void function(Set s1, ComplexNumber c2);
-        void function(ComplexNumber c1, String str2);
-        void function(String str2, ComplexNumber c2);
-        void function(Set s1, String str2);
-        void function(String str1, Set s1);
-    }
-
-    public interface functionsInterface{
-        String[] getFunctionNames();
-        int[] getFunctionMap();
-
-        //useful in enums.
-        int getId();
-
-        int getResultFlag();
-        double getReal();
-        double getIota();
-        ComplexNumber getComplex();
-        Set getSet();
-        String getString();
-        void function(Argument[] arguments, int id);
-    }
 
     public static void registerOperation(operationsInterface opInt){
         registerOperation(opInt, false);
@@ -1610,7 +1519,7 @@ public final class Main {
 
         if (map[0] == ARGUMENT_ARRAY){
             if (map.length != 2)
-                throw new ExpressionException("the functions that expects an array can only accept one type" +
+                throw new ExpressionException("the com.expression_parser_v2_0.console.library.functions that expects an array can only accept one type" +
                         " of argument, in this case, the map declaration can only have two types," +
                         " the first declaring it an array and the second being the type," +
                         " whose array is being expected");
@@ -2013,317 +1922,10 @@ public final class Main {
                 (cn.iota >= 0 ? "+" : "") + cn.iota + "i" + (c_t ? complex_token : "");
     }
 
-    public static final class ComplexNumber {
-        public double real = 0, iota = 0;
-
-        public ComplexNumber(){
-            //empty
-        }
-
-        public ComplexNumber(double real, double iota){
-            this.real = real;
-            this.iota = iota;
-        }
-    }
-
-    public static final class Argument{
-        private double real;
-        private double iota;
-        private ComplexNumber cn;
-        private String str;
-        private Set set;
-        public int type;
-
-        Argument(double real, double iota, ComplexNumber cn, String str, Set set){
-            this.real = real;
-            this.iota = iota;
-            this.cn = cn;
-            if (str != null)
-                str = str.replace("\"", "");
-            this.str = str;
-            this.set = set;
-        }
-
-        public double getRealArgument() {
-            return real;
-        }
-
-        public double getIotaArgument(){
-            return iota;
-        }
-
-        public ComplexNumber getComplexArgument() {
-            return cn;
-        }
-
-        public String getStringArgument() {
-            return str;
-        }
-
-        public Set getSetArgument(){
-            return set;
-        }
-    }
-
     private static final class DispatchParcel {
         private int type;
         private ComplexNumber number;
         private String string;
         private Set set;
-    }
-
-    public static final class Set{
-        //type enforcement, but honestly, I have no energy left to implement it right now,
-        //or 10 years in the future.
-        int type = -1;
-        private Stack<Double> reals;
-        private Stack<Double> iotas;
-        private Stack<ComplexNumber> complexes;
-        private Stack<String> strings;
-        private Stack<Set> sets;
-        @SuppressWarnings("SpellCheckingInspection")
-        //without this little guy here, one could remain stucked forever in the depths of the nested sets.
-        //update : or maybe not, I mean there's always this little thing called recursion.
-        //int nestedSets = 0;
-
-        public Set(){
-            reals = new Stack<>();
-            iotas = new Stack<>();
-            complexes = new Stack<>();
-            strings = new Stack<>();
-            sets = new Stack<>();
-        }
-
-        //these push functions are only available to this whole Main class, the client class does not
-        //need to have access to these functions as it'd be useless for them anyways.
-        void pushReal(double d){
-            reals.push(d);
-        }
-
-        void pushIota(double d){
-            iotas.push(d);
-        }
-
-        void pushComplex(ComplexNumber cn){
-            complexes.push(cn);
-        }
-
-        void pushString(String string){
-            string = string.replace("\"", "");
-            strings.push(string);
-        }
-
-        void pushSet(Set s){
-            sets.push(s);
-        }
-
-        public double pullReal(){
-            return reals.pop();
-        }
-
-        public double pullIota(){
-            return iotas.pop();
-        }
-
-        public ComplexNumber pullComplex(){
-            return complexes.pop();
-        }
-
-        public String pullString(){
-            return strings.pop();
-        }
-
-        public Set pullSet(){
-            return sets.pop();
-        }
-
-        public boolean hasNext(int type){
-            switch(type){
-                case ELEMENT_REAL :
-                    return reals.hasNext();
-                case ELEMENT_IOTA :
-                    return iotas.hasNext();
-                case ELEMENT_COMPLEX :
-                    return complexes.hasNext();
-                case ELEMENT_SET :
-                    return sets.hasNext();
-                case ELEMENT_STRING :
-                    return strings.hasNext();
-                default :
-                    throw new IllegalArgumentException("unknown type");
-            }
-        }
-    }
-
-    private static class ExpressionException extends RuntimeException {
-        ExpressionException(String message){
-            super(message);
-        }
-    }
-
-    //LIFO Structure
-    private static final class Stack<T> {
-        private Object[] items;
-        //internal Stack pointer;
-        private int pointer = -1;
-
-        //last pointer state
-        int last_point = 0;
-
-        //for iteration but no actual data modification.
-        private int pseudo_counter = -1;
-
-        //for restricting access to certain functions depending on the nature of the stack.
-        private boolean restriction = false;
-
-        Stack(int size) {
-            items = new Object[size];
-        }
-
-        Stack(){
-            this(10);
-        }
-
-        private void push(T item){
-            //increment the pointer
-            pointer++;
-
-            if (pointer <= items.length - 1) {
-                items[pointer] = item;
-                return;
-            }
-            //no index is free, allocate a new array with increased size;
-            var items1 = new Object[items.length + 10];
-            //copy the previous array over to the new one.
-            System.arraycopy(items, 0, items1, 0, items.length);
-            //reassignment
-            items = items1;
-
-            items[pointer] = item;
-        }
-
-        private void resetToCount(){
-            pointer += (last_point - pointer);
-            last_point = 0;
-        }
-
-        private void keepCount(){
-            last_point = pointer;
-        }
-
-        @SuppressWarnings("unchecked")
-        private T pop(){
-            if (pointer < 0)
-                throw new IndexOutOfBoundsException("pointer is out of bounds");
-
-            T item;
-            item = (T) items[pointer];
-            //no need to remove the data at the current pointer
-            //since the pointer will be decremented, and the next time the push function will be called,
-            //the pointer will be incremented and any data at the current pointer location will be replaced.
-
-            //decrement the pointer
-            pointer--;
-
-            return item;
-        }
-
-        private T peek(){
-            if (pointer >= 0)
-                //noinspection unchecked
-                return (T) items[pointer];
-            throw new IndexOutOfBoundsException("pointer is out of bounds");
-        }
-
-        private boolean hasNext(){
-            //pointer is only incremented when an item is pushed onto the stack, therefore providing
-            //null safety by default, meaning wherever the pointer is located, it's guaranteed to be occupied,
-            //by a certain object.
-            return pointer >= 0;
-        }
-
-        //no pointer modification.
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        private boolean contains(T item){
-            for(Object op : items){
-                if (op != null && op.equals(item)){
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private boolean isEmpty(){
-            return pointer == -1;
-        }
-
-        private int getLength(){
-            return pointer + 1;
-        }
-
-        private int getRawLength(){
-            return items.length;
-        }
-
-        private int getFreeLength(){
-            return items.length - (pointer + 1);
-        }
-
-        private int getPointerLocation() {
-            return pointer;
-        }
-
-        private Stack<T> newClone(){
-            Stack<T> stack = new Stack<>(getLength());
-            for(int i = 0; i < getLength(); i++){
-                //noinspection unchecked
-                stack.push((T)items[i]);
-            }
-            return stack;
-        }
-
-        public Stack<T> reverse() {
-            Stack<T> temp = new Stack<>();
-            while(hasNext()){
-                temp.push(pop());
-            }
-            return temp;
-        }
-
-        //iteration purpose functions.
-        private boolean loop(){
-            if (!restriction)
-                throw new RuntimeException("operations not valid for iterate unrestricted stacks");
-            return pseudo_counter >= 0;
-        }
-
-        @SuppressWarnings("unchecked")
-        private T get(){
-            if (!restriction)
-                throw new RuntimeException("operation not valid for iterate unrestricted stacks");
-            T item = (T) items[pseudo_counter];
-            pseudo_counter--;
-            return item;
-        }
-
-        //call it only after having a call made to the "get" function, which is the most natural approach,
-        //doing so otherwise will lead to unexpected results, not necessarily an exception,
-        //but a completely messed up stack.
-        private void replace(T item){
-            if (!restriction)
-                throw new RuntimeException("operation not valid for iterate unrestricted stacks");
-            items[pseudo_counter + 1] = item;
-        }
-
-        //A one way operation. once set the stacks' nature cannot be changed.
-        private void iterateRestrict(){
-            restriction = true;
-        }
-
-        private void reset(){
-            if (!restriction)
-                throw new RuntimeException("operation not valid for iterate unrestricted stacks");
-            pseudo_counter = pointer;
-        }
     }
 }

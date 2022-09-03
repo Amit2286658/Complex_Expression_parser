@@ -1,6 +1,6 @@
-package com.expression_parser_v2_0.console;
+package com.expression_parser_v2_0.console.library;
 
-import com.expression_parser_v2_0.console.Main.*;
+import com.expression_parser_v2_0.console.core.*;
 
 public abstract class Functions_Implementation implements functionsInterface {
 

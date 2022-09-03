@@ -1,6 +1,10 @@
-package com.expression_parser_v2_0.console;
+package com.expression_parser_v2_0.console.library;
 
-import com.expression_parser_v2_0.console.Main.*;
+import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.core.Main;
+import com.expression_parser_v2_0.console.core.Main.*;
+import com.expression_parser_v2_0.console.core.Set;
+import com.expression_parser_v2_0.console.core.operationsInterface;
 
 public abstract class Operations_Implementation implements operationsInterface {
 
