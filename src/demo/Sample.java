@@ -1,5 +1,6 @@
 package demo;
 
+import com.expression_parser_v2_0.console.library.functions.Set_Union;
 import com.expression_parser_v2_0.console.library.functions.Sine;
 import com.expression_parser_v2_0.console.library.functions.Sine_iota;
 import com.expression_parser_v2_0.console.library.operations.Addition;
@@ -19,6 +20,7 @@ public class Sample {
         new Division();
         new Sine();
         new Sine_iota();
+        new Set_Union();
 
         Scanner scn = new Scanner(System.in);
         String expression = scn.nextLine();

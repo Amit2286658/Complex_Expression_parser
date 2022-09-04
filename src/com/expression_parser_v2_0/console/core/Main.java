@@ -563,7 +563,6 @@ public final class Main {
                             }
                         }
                     }
-
                 }
                 throw new IllegalStateException("the given function name or" +
                         " argument doesn't quite add up");
@@ -1511,7 +1510,7 @@ public final class Main {
         bracketReplacement(stack);
 
         int[] map = fs.getFunctionMap();
-        Argument[] arguments;
+        Stack<Argument> arguments;
 
         DispatchParcel parcel = new DispatchParcel();
 
@@ -1526,7 +1525,7 @@ public final class Main {
             isArray = true;
         }
 
-        arguments = new Argument[isArray ? stack.getLength() : map.length];
+        arguments = new Stack<>(isArray ? stack.getLength() : map.length);
 
         if (!isArray) {
             int counter = 0;
@@ -1540,16 +1539,16 @@ public final class Main {
                             if (cn == null)
                                 throw new ExpressionException("arguments don't match");
                             if (cn.iota == 0){
-                                arguments[counter] = new Argument(cn.real, 0,
-                                        null, null, null);
+                                arguments.push(new Argument(cn.real, 0,
+                                        null, null, null));
                                 pointerOutput.pop();
                                 break;
                             }
                         } else {
                             ComplexNumber cn = convertToComplexNumber(item);
                             if(cn.iota == 0){
-                                arguments[counter] = new Argument(cn.real, 0,
-                                        null, null, null);
+                                arguments.push(new Argument(cn.real, 0,
+                                        null, null, null));
                                 break;
                             }
                         }
@@ -1560,16 +1559,16 @@ public final class Main {
                             if (cn == null)
                                 throw new ExpressionException("arguments don't match");
                             if (cn.real == 0){
-                                arguments[counter] = new Argument(0, cn.iota,
-                                        null, null, null);
+                                arguments.push(new Argument(0, cn.iota,
+                                        null, null, null));
                                 pointerOutput.pop();
                                 break;
                             }
                         } else {
                             ComplexNumber cn = convertToComplexNumber(item);
                             if(cn.real == 0){
-                                arguments[counter] = new Argument(0, cn.iota,
-                                        null, null, null);
+                                arguments.push(new Argument(0, cn.iota,
+                                        null, null, null));
                                 break;
                             }
                         }
@@ -1579,13 +1578,13 @@ public final class Main {
                             ComplexNumber cn = pointerOutput.peek().number;
                             if (cn == null)
                                 throw new ExpressionException("arguments don't match");
-                            arguments[counter] = new Argument(0, 0,
-                                    cn, null, null);
+                            arguments.push(new Argument(0, 0,
+                                    cn, null, null));
                             pointerOutput.pop();
                         } else {
                             ComplexNumber cn = convertToComplexNumber(item);
-                            arguments[counter] = new Argument(0, 0,
-                                    cn, null, null);
+                            arguments.push(new Argument(0, 0,
+                                    cn, null, null));
                         }
                         break;
                     case ARGUMENT_STRING :
@@ -1593,13 +1592,13 @@ public final class Main {
                             String str = pointerOutput.peek().string;
                             if (str == null)
                                 throw new ExpressionException("arguments don't match");
-                            arguments[counter] = new Argument(0, 0,
-                                    null, str, null);
+                            arguments.push(new Argument(0, 0,
+                                    null, str, null));
                             pointerOutput.pop();
                             break;
                         } else if (item.charAt(0) == string_token) {
-                            arguments[counter] = new Argument(0, 0,
-                                    null, item, null);
+                            arguments.push(new Argument(0, 0,
+                                    null, item, null));
                             break;
                         }
                         throw new IllegalArgumentException("not a string");
@@ -1608,13 +1607,13 @@ public final class Main {
                             Set set = pointerOutput.peek().set;
                             if (set == null)
                                 throw new ExpressionException("arguments don't match");
-                            arguments[counter] = new Argument(0, 0,
-                                    null, null, set);
+                            arguments.push(new Argument(0, 0,
+                                    null, null, set));
                             pointerOutput.pop();
                         } else {
                             Set set = setGiver(stack);
-                            arguments[counter] = new Argument(0, 0,
-                                    null, null, set);
+                            arguments.push(new Argument(0, 0,
+                                    null, null, set));
                         }
                         break;
                     case ARGUMENT_ARRAY :
@@ -1626,7 +1625,6 @@ public final class Main {
             }
         }else {
             int type = map[1];
-            int counter = 0;
             while (stack.hasNext()){
                 String item = stack.pop();
                 switch(type){
@@ -1636,16 +1634,16 @@ public final class Main {
                             if (cn == null)
                                 throw new ExpressionException("arguments don't match");
                             if (cn.iota == 0){
-                                arguments[counter] = new Argument(cn.real, 0,
-                                        null, null, null);
+                                arguments.push(new Argument(cn.real, 0,
+                                        null, null, null));
                                 pointerOutput.pop();
                                 break;
                             }
                         } else {
                             ComplexNumber cn = convertToComplexNumber(item);
                             if(cn.iota == 0){
-                                arguments[counter] = new Argument(cn.real, 0,
-                                        null, null, null);
+                                arguments.push(new Argument(cn.real, 0,
+                                        null, null, null));
                                 break;
                             }
                         }
@@ -1656,16 +1654,16 @@ public final class Main {
                             if (cn == null)
                                 throw new ExpressionException("arguments don't match");
                             if (cn.real == 0){
-                                arguments[counter] = new Argument(0, cn.iota,
-                                        null, null, null);
+                                arguments.push(new Argument(0, cn.iota,
+                                        null, null, null));
                                 pointerOutput.pop();
                                 break;
                             }
                         } else {
                             ComplexNumber cn = convertToComplexNumber(item);
                             if(cn.real == 0){
-                                arguments[counter] = new Argument(0, cn.iota,
-                                        null, null, null);
+                                arguments.push(new Argument(0, cn.iota,
+                                        null, null, null));
                                 break;
                             }
                         }
@@ -1675,13 +1673,13 @@ public final class Main {
                             ComplexNumber cn = pointerOutput.peek().number;
                             if (cn == null)
                                 throw new ExpressionException("arguments don't match");
-                            arguments[counter] = new Argument(0, 0,
-                                    cn, null, null);
+                            arguments.push(new Argument(0, 0,
+                                    cn, null, null));
                             pointerOutput.pop();
                         } else {
                             ComplexNumber cn = convertToComplexNumber(item);
-                            arguments[counter] = new Argument(0, 0,
-                                    cn, null, null);
+                            arguments.push(new Argument(0, 0,
+                                    cn, null, null));
                         }
                         break;
                     case ARGUMENT_STRING :
@@ -1689,13 +1687,13 @@ public final class Main {
                             String str = pointerOutput.peek().string;
                             if (str == null)
                                 throw new ExpressionException("arguments don't match");
-                            arguments[counter] = new Argument(0, 0,
-                                    null, str, null);
+                            arguments.push(new Argument(0, 0,
+                                    null, str, null));
                             pointerOutput.pop();
                             break;
                         } else if (item.charAt(0) == string_token) {
-                            arguments[counter] = new Argument(0, 0,
-                                    null, item, null);
+                            arguments.push(new Argument(0, 0,
+                                    null, item, null));
                             break;
                         }
                         throw new IllegalArgumentException("not a string");
@@ -1704,13 +1702,13 @@ public final class Main {
                             Set set = pointerOutput.peek().set;
                             if (set == null)
                                 throw new ExpressionException("arguments don't match");
-                            arguments[counter] = new Argument(0, 0,
-                                    null, null, set);
+                            arguments.push(new Argument(0, 0,
+                                    null, null, set));
                             pointerOutput.pop();
                         } else {
                             Set set = setGiver(stack);
-                            arguments[counter] = new Argument(0, 0,
-                                    null, null, set);
+                            arguments.push(new Argument(0, 0,
+                                    null, null, set));
                         }
                         break;
                     case ARGUMENT_ARRAY :
@@ -1719,11 +1717,17 @@ public final class Main {
                     default:
                         break;
                 }
-                counter++;
             }
         }
 
-        fs.function(arguments, fs.getId());
+        Argument[] args = new Argument[arguments.getLength()];
+        int count = 0;
+        arguments = arguments.reverse();
+        while(arguments.hasNext()){
+            args[count] = arguments.pop();
+            count++;
+        }
+        fs.function(args, fs.getId());
 
         int resultFlag = fs.getResultFlag();
         ComplexNumber cn;
@@ -1746,9 +1750,11 @@ public final class Main {
             case RESULT_SET :
                 parcel.type = DISPATCHED_TYPE_SET;
                 parcel.set = fs.getSet();
+                return parcel;
             case RESULT_STRING :
                 parcel.type = DISPATCHED_TYPE_STRING;
                 parcel.string = fs.getString();
+                return parcel;
             default :
                 throw new IllegalArgumentException("unknown type");
         }
@@ -1782,13 +1788,13 @@ public final class Main {
                 case DISPATCHED_TYPE_STRING :
                     return parcel.string;
                 case DISPATCHED_TYPE_SET :
-                    return convertSetToString(parcel.set);
+                    return convertSetToString(parcel.set, true);
             }
         } else if (item.charAt(0) == string_token){
             return item;
         } else if (item.equals("}")){
             Set set = setGiver(result);
-            return convertSetToString(set);
+            return convertSetToString(set, true);
         } else {
             cn = convertToComplexNumber(item);
             isComplex = true;
@@ -1838,8 +1844,11 @@ public final class Main {
         }
     }
 
-    private static String convertSetToString(Set set) {
+    private static String convertSetToString(Set set, boolean firstIteration) {
         StringBuilder builder = new StringBuilder();
+
+        if (firstIteration)
+            builder.append('{');
 
         while(set.hasNext(ELEMENT_REAL)) {
             double real = set.pullReal();
@@ -1876,12 +1885,15 @@ public final class Main {
             builder.append(set.pullString()).append(',');
 
         while(set.hasNext(ELEMENT_SET))
-            builder.append('{').append(convertSetToString(set.pullSet()))
+            builder.append('{').append(convertSetToString(set.pullSet(), false))
                     .append('}').append(',');
 
         int last_pos = builder.length() - 1;
         if (builder.charAt(last_pos) == ',')
             builder.deleteCharAt(last_pos);
+
+        if (firstIteration)
+            builder.append('}');
         return builder.toString();
     }
 

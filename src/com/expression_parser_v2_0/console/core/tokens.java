@@ -1,6 +1,6 @@
 package com.expression_parser_v2_0.console.core;
 
-public class tokens {
+class tokens {
     static final char
             complex_token = '$',
             function_token = '@',

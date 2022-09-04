@@ -18,32 +18,37 @@ public final class Set{
 
     public Set(){
         reals = new Stack<>();
+        reals.iterateRestrict();
         iotas = new Stack<>();
+        iotas.iterateRestrict();
         complexes = new Stack<>();
+        complexes.iterateRestrict();
         strings = new Stack<>();
+        strings.iterateRestrict();
         sets = new Stack<>();
+        sets.iterateRestrict();
     }
 
     //these push com.expression_parser_v2_0.console.library.functions are only available to this whole Main class, the client class does not
     //need to have access to these com.expression_parser_v2_0.console.library.functions as it'd be useless for them anyways.
-    void pushReal(double d){
+    public void pushReal(double d){
         reals.push(d);
     }
 
-    void pushIota(double d){
+    public void pushIota(double d){
         iotas.push(d);
     }
 
-    void pushComplex(ComplexNumber cn){
+    public void pushComplex(ComplexNumber cn){
         complexes.push(cn);
     }
 
-    void pushString(String string){
+    public void pushString(String string){
         string = string.replace("\"", "");
         strings.push(string);
     }
 
-    void pushSet(Set s){
+    public void pushSet(Set s){
         sets.push(s);
     }
 
@@ -51,20 +56,40 @@ public final class Set{
         return reals.pop();
     }
 
+    public double getReal(){
+        return reals.get();
+    }
+
     public double pullIota(){
         return iotas.pop();
+    }
+
+    public double getIota(){
+        return iotas.get();
     }
 
     public ComplexNumber pullComplex(){
         return complexes.pop();
     }
 
+    public ComplexNumber getComplex(){
+        return complexes.get();
+    }
+
     public String pullString(){
         return strings.pop();
     }
 
+    public String getString(){
+        return strings.get();
+    }
+
     public Set pullSet(){
         return sets.pop();
+    }
+
+    public Set getSet(){
+        return sets.get();
     }
 
     public boolean hasNext(int type){
@@ -79,6 +104,45 @@ public final class Set{
                 return sets.hasNext();
             case ELEMENT_STRING :
                 return strings.hasNext();
+            default :
+                throw new IllegalArgumentException("unknown type");
+        }
+    }
+
+    public void resetLoop(int type){
+        switch(type){
+            case ELEMENT_REAL :
+                reals.reset();
+                break;
+            case ELEMENT_IOTA :
+                iotas.reset();
+                break;
+            case ELEMENT_COMPLEX :
+                complexes.reset();
+                break;
+            case ELEMENT_SET :
+                sets.reset();
+                break;
+            case ELEMENT_STRING :
+                strings.reset();
+                break;
+            default :
+                throw new IllegalArgumentException("unknown type");
+        }
+    }
+
+    public boolean loop(int type){
+        switch(type){
+            case ELEMENT_REAL :
+                return reals.loop();
+            case ELEMENT_IOTA :
+                return iotas.loop();
+            case ELEMENT_COMPLEX :
+                return complexes.loop();
+            case ELEMENT_SET :
+                return sets.loop();
+            case ELEMENT_STRING :
+                return strings.loop();
             default :
                 throw new IllegalArgumentException("unknown type");
         }
