@@ -7,9 +7,9 @@ import com.expression_parser_v2_0.console.library.operations.Addition;
 import com.expression_parser_v2_0.console.library.operations.Division;
 import com.expression_parser_v2_0.console.library.operations.Multiplication;
 import com.expression_parser_v2_0.console.library.operations.Subtraction;
+import com.expression_parser_v2_0.console.vendor.Expression;
 
 import java.util.Scanner;
-import static com.expression_parser_v2_0.console.core.Main.*;
 
 public class Sample {
 
@@ -25,7 +25,8 @@ public class Sample {
         Scanner scn = new Scanner(System.in);
         String expression = scn.nextLine();
         double time1 = System.currentTimeMillis();
-        String str = Evaluate(expression);
+        Expression exp = new Expression();
+        String str = exp.Evaluate(expression);
         double time2 = System.currentTimeMillis();
         System.out.println(str);
         System.out.println("time taken : " + (time2 - time1) + " ms");

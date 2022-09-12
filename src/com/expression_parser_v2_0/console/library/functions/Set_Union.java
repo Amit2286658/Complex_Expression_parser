@@ -3,7 +3,9 @@ package com.expression_parser_v2_0.console.library.functions;
 import com.expression_parser_v2_0.console.core.Argument;
 import com.expression_parser_v2_0.console.core.Set;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
+import com.expression_parser_v2_0.console.core.Utility;
 
+import static com.expression_parser_v2_0.console.core.Utility.displaySet;
 import static com.expression_parser_v2_0.console.core.constants.*;
 
 public class Set_Union extends Functions_Implementation {
@@ -48,6 +50,7 @@ public class Set_Union extends Functions_Implementation {
         Set firstSet = arguments[count].getSetArgument();
         while(firstSet.hasNext(ELEMENT_REAL))
             this.set.pushReal(firstSet.pullReal());
+
         count++;
         while(count < arguments.length) {
             union(arguments[count].getSetArgument());
@@ -59,19 +62,9 @@ public class Set_Union extends Functions_Implementation {
     private void union(Set set){
         while(set.hasNext(ELEMENT_REAL)){
             double real = set.pullReal();
-            boolean check = doesRealExist(real);
+            boolean check = this.set.containsReal(real);
             if (!check)
                 this.set.pushReal(real);
         }
-    }
-
-    private boolean doesRealExist(double value){
-        set.resetLoop(ELEMENT_REAL);
-        while(set.loop(ELEMENT_REAL)){
-            double real = set.getReal();
-            if (value == real)
-                return true;
-        }
-        return false;
     }
 }

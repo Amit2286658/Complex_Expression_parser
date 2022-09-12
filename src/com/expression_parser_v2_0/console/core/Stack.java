@@ -82,7 +82,6 @@ final class Stack<T> {
     }
 
     //no pointer modification.
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean contains(T item){
         for(Object op : items){
             if (op != null && op.equals(item)){

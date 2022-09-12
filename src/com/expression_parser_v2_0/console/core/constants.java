@@ -33,4 +33,10 @@ public class constants {
             PRECEDENCE_LEAST = 250,
             PRECEDENCE_MEDIUM = 500,
             PRECEDENCE_MAX = 750;
+
+    static final int
+            PRECEDENCE_FUNCTION = 1000,
+            DISPATCHED_TYPE_COMPLEX = 1,
+            DISPATCHED_TYPE_SET = 2,
+            DISPATCHED_TYPE_STRING = 3;
 }

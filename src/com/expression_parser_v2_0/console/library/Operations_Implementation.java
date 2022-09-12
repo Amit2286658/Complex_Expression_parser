@@ -1,10 +1,6 @@
 package com.expression_parser_v2_0.console.library;
 
-import com.expression_parser_v2_0.console.core.ComplexNumber;
-import com.expression_parser_v2_0.console.core.Main;
-import com.expression_parser_v2_0.console.core.Main.*;
-import com.expression_parser_v2_0.console.core.Set;
-import com.expression_parser_v2_0.console.core.operationsInterface;
+import com.expression_parser_v2_0.console.core.*;
 
 public abstract class Operations_Implementation implements operationsInterface {
 
@@ -13,7 +9,7 @@ public abstract class Operations_Implementation implements operationsInterface {
     }
 
     public Operations_Implementation(boolean override){
-        Main.registerOperation(this, override);
+        Global.registerOperation(this, override);
     }
 
     @Override

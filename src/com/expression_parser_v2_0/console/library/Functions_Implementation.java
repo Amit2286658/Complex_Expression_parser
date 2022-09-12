@@ -9,7 +9,7 @@ public abstract class Functions_Implementation implements functionsInterface {
     }
 
     public Functions_Implementation(boolean override){
-        Main.registerFunction(this, override);
+        Global.registerFunction(this, override);
     }
 
     @Override

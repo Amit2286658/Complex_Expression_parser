@@ -1,13 +1,17 @@
 package com.expression_parser_v2_0.console.core;
 
+import static com.expression_parser_v2_0.console.core.Global.*;
+import static com.expression_parser_v2_0.console.core.Utility.convertSetToString;
 import static com.expression_parser_v2_0.console.core.constants.*;
 import static com.expression_parser_v2_0.console.core.tokens.*;
 
 //no inheritance.
-public final class Main {
+public final class Parser {
     //no instance creation.
-    private Main(){
-        //empty private constructor.
+    public Parser(){
+        pointerOutput = new Stack<>();
+        functions = getFunctions();
+        operations = getOperations();
     }
     /*
     *my keyboard got smacked last night because something happened..., never mind, these keys
@@ -18,124 +22,13 @@ public final class Main {
     | -> latin iota (is that what it's called?), for char "or" condition.
     || -> double latin iota(still in doubt), for string "or" condition.
     */
+    private final Stack<DispatchParcel> pointerOutput;
 
-    //when true, the entered angle will be converted into the radians since
-    //that's the default accepting parameter
-    //for the java math com.expression_parser_v2_0.console.library.functions, when false, no conversion will happen.
-    private static boolean use_degree = true;
+    private final Stack<functionsInterface> functions;
+    private final Stack<operationsInterface> operations;
 
-    public static int getAngleMode() {
-        return use_degree ? ANGLE_MODE_DEGREE : ANGLE_MODE_RADIAN;
-    }
-
-    public static void setAngleMode(int angleMode) {
-        if (angleMode == ANGLE_MODE_DEGREE)
-            use_degree = true;
-        else if (angleMode == ANGLE_MODE_RADIAN)
-            use_degree = false;
-        else
-            throw new IllegalArgumentException("unknown angle mode");
-    }
-
-    private static Stack<operationsInterface> operations;
-    private static Stack<functionsInterface> functions;
-    private static Stack<DispatchParcel> pointerOutput;
-
-    static {
-        operations = new Stack<>();
-        functions = new Stack<>();
-        pointerOutput = new Stack<>();
-        operations.iterateRestrict();
-        functions.iterateRestrict();
-    }
-
-    private static final int
-            PRECEDENCE_FUNCTION = 1000,
-            DISPATCHED_TYPE_COMPLEX = 1,
-            DISPATCHED_TYPE_SET = 2,
-            DISPATCHED_TYPE_STRING = 3;
-
-    public static void registerOperation(operationsInterface opInt){
-        registerOperation(opInt, false);
-    }
-
-    public static void registerOperation(operationsInterface opInt, boolean override){
-        if (operations.isEmpty()) {
-            operations.push(opInt);
-            return;
-        }
-        operations.reset();
-        while(operations.loop()){
-            operationsInterface op = operations.get();
-            if (op.getOperator() == opInt.getOperator()){
-                if (!override){
-                    throw new ExpressionException("An operation already exists, " +
-                            "with the same operator : " + op.getOperator());
-                }else{
-                    operations.replace(opInt);
-                    return;
-                }
-            }
-        }
-        operations.push(opInt);
-    }
-
-    public static void registerFunction(functionsInterface fs){
-        registerFunction(fs, false);
-    }
-
-    public static void registerFunction(functionsInterface fs, boolean override){
-        if (functions.isEmpty()) {
-            functions.push(fs);
-            return;
-        }
-        functions.reset();
-        outer_loop :
-        while(functions.loop()){
-            functionsInterface fsInt = functions.get();
-            boolean match = false;
-
-            function_in_list :
-            for(String str : fsInt.getFunctionNames())
-                for(String str1 : fs.getFunctionNames())
-                    if (str1.equals(str)){
-                        match = true;
-                        break function_in_list;
-                    }
-
-            if (match) {
-                int[] map1 = fsInt.getFunctionMap();
-                int[] map2 = fs.getFunctionMap();
-                int len1 = map1.length;
-                int len2 = map2.length;
-                //if the lengths don't match, just cut of the loop,
-                //and push the function onto the stack, it will be treated as an overload.
-                if (len1 == len2) {
-                    //if the lengths match, but certain parameter type don't, then cut out of the loop,
-                    //and push the function onto the stack, it will be treated as an overload.
-                    for (int i = 0; i < len1; i++) {
-                        if (map1[i] != map2[i])
-                            break outer_loop;
-                    }
-                    if (!override)
-                        throw new ExpressionException("A function with the same name : " +
-                                fs.getFunctionNames()[0] + ", and same map already exists");
-                    else
-                        functions.replace(fs);
-                    return;
-                }
-            }
-        }
-        functions.push(fs);
-    }
-
-    //repeat after me, System.out.println System.out.println System.out.println System.out.println
-    public static void print(String str){
-        System.out.println(str);
-    }
-
-    public static String Evaluate(String expression){
-        if (operations.isEmpty() && functions.isEmpty())
+    public String Evaluate(String expression){
+        if (isOperationsEmpty() && isFunctionsEmpty())
             return expression;
         if (expression.length() == 0)
             throw new IllegalArgumentException("given input string is empty");
@@ -150,7 +43,7 @@ public final class Main {
     }
 
     //general parser to resolve minor errors in a string.
-    private static String GeneralParser(String expression){
+    private String GeneralParser(String expression){
         expression = expression.trim();
 
         StringBuilder space_less = new StringBuilder();
@@ -198,7 +91,6 @@ public final class Main {
                     fn_names.push(nm);
                 }
             }
-
         }
 
         //create name array
@@ -276,7 +168,7 @@ public final class Main {
         return expression;
     }
 
-    private static String complexConverter(String expression){
+    private String complexConverter(String expression){
         StringBuilder builder = new StringBuilder();
         StringBuilder currentStep = new StringBuilder();
 
@@ -382,7 +274,7 @@ public final class Main {
     }
 
     //does not resolve any error, provide a valid string.
-    private static Stack<String> postFixConverter(String expression){
+    private Stack<String> postFixConverter(String expression){
         StringBuilder builder = new StringBuilder();
 
         boolean tokenCounter = false;
@@ -468,16 +360,14 @@ public final class Main {
                     while (operators.hasNext()) {
                         char p = operators.peek().charAt(0);
                         if (p != '(' && p != '{') {
-                            boolean isFun = false;
-                            if (p == function_token)
-                                isFun = true;
+                            boolean isFun = p == function_token;
                             operationsInterface previous_ops = null;
                             if (!isFun)
                                 previous_ops = getCharAsAnOperator(p);
                             int current_ops_precedence = current_ops.getPrecedence();
                             if (current_ops_precedence >= PRECEDENCE_FUNCTION)
                                 throw new ExpressionException("an operation can't have precedence more than" +
-                                        " or equal to 1000");
+                                        " or equal to ${PRECEDENCE_FUNCTION}");
                             if (current_ops_precedence <= (!isFun ? previous_ops.getPrecedence() :
                                     PRECEDENCE_FUNCTION)){
                                 String item = operators.pop();
@@ -511,11 +401,11 @@ public final class Main {
             builder.append(output.get()).append(",");
         }
 
-        System.out.println("post fix string => " + builder.toString());
+        System.out.println("post fix string => " + builder);
         return output;
     }
 
-    private static Stack<String> postFixEvaluator(Stack<String> stack){
+    private Stack<String> postFixEvaluator(Stack<String> stack){
         Stack<String> output = new Stack<>();
 
         outer_loop :
@@ -568,66 +458,66 @@ public final class Main {
                         " argument doesn't quite add up");
             }else if(item.charAt(0) == operation_token){
                 operationsInterface opInt = getCharAsAnOperator(item.charAt(1));
-                switch(opInt.getType()){
-                    case TYPE_BOTH :
-                        DispatchParcel parcel_left = null, parcel_right = null;
+                switch (opInt.getType()) {
+                    case TYPE_BOTH -> {
+                        DispatchParcel parcel_left, parcel_right;
                         String right = output.pop();
                         if (right.equals(pointer_token + "")) {
                             parcel_right = pointerOutput.pop();
-                        }else if(right.equals("}")){
+                        } else if (right.equals("}")) {
                             parcel_right = new DispatchParcel();
                             parcel_right.type = DISPATCHED_TYPE_SET;
                             parcel_right.set = setGiver(output);
-                        }else{
+                        } else {
                             parcel_right = convertStringToParcel(right);
                         }
                         String left = output.pop();
                         if (left.equals(pointer_token + "")) {
                             parcel_left = pointerOutput.pop();
-                        }else if(left.equals("}")){
+                        } else if (left.equals("}")) {
                             parcel_left = new DispatchParcel();
                             parcel_left.type = DISPATCHED_TYPE_SET;
                             parcel_left.set = setGiver(output);
-                        }else{
+                        } else {
                             parcel_left = convertStringToParcel(left);
                         }
                         pointerOutput.push(tempoDispatcher(parcel_right, parcel_left, opInt));
                         output.push(pointer_token + "");
-                        break;
-                    case TYPE_PRE :
-                        DispatchParcel parcel_left_1 = null;
+                    }
+                    case TYPE_PRE -> {
+                        DispatchParcel parcel_left_1;
                         String left_1 = output.pop();
                         if (left_1.equals(pointer_token + "")) {
                             parcel_left_1 = pointerOutput.pop();
-                        }else if(left_1.equals("}")){
+                        } else if (left_1.equals("}")) {
                             parcel_left_1 = new DispatchParcel();
                             parcel_left_1.type = DISPATCHED_TYPE_SET;
                             parcel_left_1.set = setGiver(output);
-                        }else{
+                        } else {
                             parcel_left_1 = convertStringToParcel(left_1);
                         }
                         pointerOutput.push(tempoDispatcher(null, parcel_left_1, opInt));
                         output.push(pointer_token + "");
-                        break;
-                    case TYPE_POST :
-                        DispatchParcel parcel_right_1 = null;
+                    }
+                    case TYPE_POST -> {
+                        DispatchParcel parcel_right_1;
                         String right_1 = output.pop();
                         if (right_1.equals(pointer_token + "")) {
                             parcel_right_1 = pointerOutput.pop();
-                        }else if(right_1.equals("}")){
+                        } else if (right_1.equals("}")) {
                             parcel_right_1 = new DispatchParcel();
                             parcel_right_1.type = DISPATCHED_TYPE_SET;
                             parcel_right_1.set = setGiver(output);
-                        }else{
+                        } else {
                             parcel_right_1 = convertStringToParcel(right_1);
                         }
                         pointerOutput.push(tempoDispatcher(parcel_right_1, null, opInt));
                         output.push(pointer_token + "");
-                        break;
-                    case TYPE_CONSTANT :
+                    }
+                    case TYPE_CONSTANT -> {
                         pointerOutput.push(tempoDispatcher(null, null, opInt));
                         output.push(pointer_token + "");
-                        break;
+                    }
                 }
             }else{
                 output.push(item);
@@ -636,7 +526,7 @@ public final class Main {
         return output;
     }
 
-    private static Set setGiver(Stack<String> stack){
+    private Set setGiver(Stack<String> stack){
         int set_count = 1;
         Stack<String> st = new Stack<>();
         while(set_count != 0){
@@ -655,7 +545,7 @@ public final class Main {
         return setHandler('{', '}', st);
     }
 
-    private static DispatchParcel convertStringToParcel(String str){
+    private DispatchParcel convertStringToParcel(String str){
         ComplexNumber cn;
         DispatchParcel parcel = new DispatchParcel();
 
@@ -674,90 +564,64 @@ public final class Main {
         return parcel;
     }
 
-    private static DispatchParcel tempoDispatcher(DispatchParcel parcel_right, DispatchParcel parcel_left,
+    private DispatchParcel tempoDispatcher(DispatchParcel parcel_right, DispatchParcel parcel_left,
                                                   operationsInterface ops){
         DispatchParcel result = null;
         if (parcel_right != null && parcel_left != null){
-            switch(parcel_right.type){
-                case DISPATCHED_TYPE_COMPLEX :
-                    switch(parcel_left.type){
-                        case DISPATCHED_TYPE_COMPLEX :
-                            result = dispatcher(parcel_left.number, parcel_right.number,
-                                    null, null, null, null, ops);
-                            break;
-                        case DISPATCHED_TYPE_STRING :
-                            result = dispatcher(null, parcel_right.number,
-                                    null, null, parcel_left.string, null, ops);
-                            break;
-                        case DISPATCHED_TYPE_SET :
-                            result = dispatcher(null, parcel_right.number,
-                                    parcel_left.set, null, null, null, ops);
-                            break;
-                    }
-                    break;
-                case DISPATCHED_TYPE_STRING :
-                    switch(parcel_left.type){
-                        case DISPATCHED_TYPE_COMPLEX :
-                            result = dispatcher(parcel_left.number, null,
-                                    null, null, null, parcel_right.string, ops);
-                            break;
-                        case DISPATCHED_TYPE_STRING :
-                            result = dispatcher(null, null,
-                                    null, null, parcel_left.string, parcel_right.string, ops);
-                            break;
-                        case DISPATCHED_TYPE_SET :
-                            result = dispatcher(null, null,
-                                    parcel_left.set, null, null, parcel_right.string, ops);
-                            break;
-                    }
-                    break;
-                case DISPATCHED_TYPE_SET :
-                    switch(parcel_left.type){
-                        case DISPATCHED_TYPE_COMPLEX :
-                            result = dispatcher(parcel_left.number, null,
-                                    null, parcel_right.set, null, null, ops);
-                            break;
-                        case DISPATCHED_TYPE_STRING :
-                            result = dispatcher(null, null,
-                                    null, parcel_right.set, parcel_left.string, null, ops);
-                            break;
-                        case DISPATCHED_TYPE_SET :
-                            result = dispatcher(null, null,
-                                    parcel_left.set, parcel_right.set, null, null, ops);
-                            break;
-                    }
-                    break;
+            switch (parcel_right.type) {
+                case DISPATCHED_TYPE_COMPLEX -> result = switch (parcel_left.type) {
+                    case DISPATCHED_TYPE_COMPLEX -> dispatcher(parcel_left.number, parcel_right.number,
+                            null, null, null, null, ops);
+                    case DISPATCHED_TYPE_STRING -> dispatcher(null, parcel_right.number,
+                            null, null, parcel_left.string, null, ops);
+                    case DISPATCHED_TYPE_SET -> dispatcher(null, parcel_right.number,
+                            parcel_left.set, null, null, null, ops);
+                    default -> throw new NullPointerException("the returned result is null, returned an empty " +
+                            "object if that is what intended");
+                };
+                case DISPATCHED_TYPE_STRING -> result = switch (parcel_left.type) {
+                    case DISPATCHED_TYPE_COMPLEX -> dispatcher(parcel_left.number, null,
+                            null, null, null, parcel_right.string, ops);
+                    case DISPATCHED_TYPE_STRING -> dispatcher(null, null,
+                            null, null, parcel_left.string, parcel_right.string, ops);
+                    case DISPATCHED_TYPE_SET -> dispatcher(null, null,
+                            parcel_left.set, null, null, parcel_right.string, ops);
+                    default -> throw new NullPointerException("the returned result is null, returned an empty " +
+                            "object if that is what intended");
+                };
+                case DISPATCHED_TYPE_SET -> result = switch (parcel_left.type) {
+                    case DISPATCHED_TYPE_COMPLEX -> dispatcher(parcel_left.number, null,
+                            null, parcel_right.set, null, null, ops);
+                    case DISPATCHED_TYPE_STRING -> dispatcher(null, null,
+                            null, parcel_right.set, parcel_left.string, null, ops);
+                    case DISPATCHED_TYPE_SET -> dispatcher(null, null,
+                            parcel_left.set, parcel_right.set, null, null, ops);
+                    default -> throw new NullPointerException("the returned result is null, returned an empty " +
+                            "object if that is what intended");
+                };
             }
         }else if (parcel_right != null){
-            switch(parcel_right.type){
-                case DISPATCHED_TYPE_COMPLEX :
-                    result = dispatcher(null, parcel_right.number, null, null,
-                            null, null, ops);
-                    break;
-                case DISPATCHED_TYPE_STRING :
-                    result = dispatcher(null, null, null, null,
-                            null, parcel_right.string, ops);
-                    break;
-                case DISPATCHED_TYPE_SET :
-                    result = dispatcher(null, null, null, parcel_right.set,
-                            null, null, ops);
-                    break;
-            }
+            result = switch (parcel_right.type) {
+                case DISPATCHED_TYPE_COMPLEX -> dispatcher(null, parcel_right.number, null, null,
+                        null, null, ops);
+                case DISPATCHED_TYPE_STRING -> dispatcher(null, null, null, null,
+                        null, parcel_right.string, ops);
+                case DISPATCHED_TYPE_SET -> dispatcher(null, null, null, parcel_right.set,
+                        null, null, ops);
+                default -> throw new NullPointerException("the returned result is null, returned an empty " +
+                        "object if that is what intended");
+            };
         }else if (parcel_left != null){
-            switch(parcel_left.type){
-                case DISPATCHED_TYPE_COMPLEX :
-                    result = dispatcher(parcel_left.number, null, null, null,
-                            null, null, ops);
-                    break;
-                case DISPATCHED_TYPE_STRING :
-                    result = dispatcher(null, null, null, null,
-                            parcel_left.string, null, ops);
-                    break;
-                case DISPATCHED_TYPE_SET :
-                    result = dispatcher(null, null, parcel_left.set, null,
-                            null, null, ops);
-                    break;
-            }
+            result = switch (parcel_left.type) {
+                case DISPATCHED_TYPE_COMPLEX -> dispatcher(parcel_left.number, null, null, null,
+                        null, null, ops);
+                case DISPATCHED_TYPE_STRING -> dispatcher(null, null, null, null,
+                        parcel_left.string, null, ops);
+                case DISPATCHED_TYPE_SET -> dispatcher(null, null, parcel_left.set, null,
+                        null, null, ops);
+                default -> throw new NullPointerException("the returned result is null, returned an empty " +
+                        "object if that is what intended");
+            };
         }else {
             result = dispatcher(null, null, null, null,
                     null, null, ops);
@@ -765,7 +629,7 @@ public final class Main {
         return result;
     }
 
-    private static String functionHandler(String expression){
+    private String functionHandler(String expression){
         expression = functionUpdater(expression);
 
         Stack<String> fn_names = new Stack<>();
@@ -784,7 +648,7 @@ public final class Main {
         return expression;
     }
 
-    private static String functionUpdater(String expression){
+    private String functionUpdater(String expression){
         StringBuilder builder = new StringBuilder();
 
         boolean param_scan = false;
@@ -840,7 +704,7 @@ public final class Main {
         return expression;
     }
 
-    public static Set setHandler(char opening_bracket, char closing_bracket, Stack<String> stack){
+    public Set setHandler(char opening_bracket, char closing_bracket, Stack<String> stack){
         if (stack.getLength() == 0){
             return new Set();
         }
@@ -882,11 +746,9 @@ public final class Main {
             }
             if (item.charAt(0) == pointer_token){
                 DispatchParcel parcel = pointerOutput.pop();
-                switch(parcel.type){
-                    case DISPATCHED_TYPE_SET :
-                        set.pushSet(parcel.set);
-                        break;
-                    case DISPATCHED_TYPE_COMPLEX :
+                switch (parcel.type) {
+                    case DISPATCHED_TYPE_SET -> set.pushSet(parcel.set);
+                    case DISPATCHED_TYPE_COMPLEX -> {
                         ComplexNumber cn = parcel.number;
                         if (cn.real != 0 && cn.iota != 0)
                             set.pushComplex(cn);
@@ -894,10 +756,8 @@ public final class Main {
                             set.pushReal(cn.real);
                         else if (cn.iota != 0)
                             set.pushIota(cn.iota);
-                        break;
-                    case DISPATCHED_TYPE_STRING :
-                        set.pushString(parcel.string);
-                        break;
+                    }
+                    case DISPATCHED_TYPE_STRING -> set.pushString(parcel.string);
                 }
                 continue;
             }
@@ -916,7 +776,7 @@ public final class Main {
         return set;
     }
 
-    private static String implicitSolver(String expression){
+    private String implicitSolver(String expression){
         StringBuilder builder = new StringBuilder();
 
         outer_loop :
@@ -943,7 +803,7 @@ public final class Main {
         return builder.toString();
     }
 
-    private static void Popper(char bracket, Stack<String> output, Stack<String> operators){
+    private void Popper(char bracket, Stack<String> output, Stack<String> operators){
         while(operators.hasNext()){
             char p = operators.peek().charAt(0);
             if (p != bracket) {
@@ -956,7 +816,7 @@ public final class Main {
         }
     }
 
-    private static String getImplicitExp(operationsInterface opInt, char left, char right){
+    private String getImplicitExp(operationsInterface opInt, char left, char right){
         //no need to check for either a dot '.', or exponent ';', in each case,
         //they must end with a number, or else they'll be invalid.
         //only left operand can have an iota 'i'.
@@ -979,22 +839,21 @@ public final class Main {
             operationsInterface right_ops = getCharAsAnOperator(right);
             int precedence_current = opInt.getPrecedence();
             int precedence_right = right_ops != null ? right_ops.getPrecedence() : -1;
-            switch(opInt.getType()){
-                case TYPE_BOTH :
+            switch (opInt.getType()) {
+                case TYPE_BOTH -> {
                     if (right_ops == null)
                         throw new ExpressionException("the operator type is both, however the right operand is" +
                                 " a closing bracket");
-
-                    switch(right_ops.getType()){
-                        case TYPE_BOTH :
+                    switch (right_ops.getType()) {
+                        case TYPE_BOTH:
                             if (right_ops.getOperator() == '+' || right_ops.getOperator() == '-')
                                 return opInt.getOperator() + "";
-                        case TYPE_PRE :
+                        case TYPE_PRE:
                             throw new ExpressionException("the right operand is of type pre or" +
                                     " both while the left operator" +
                                     " is of type both, they both need an operand in between to work.");
-                        case TYPE_POST :
-                        case TYPE_CONSTANT :
+                        case TYPE_POST:
+                        case TYPE_CONSTANT:
                             if (precedence_current >= precedence_right)
                                 throw new ExpressionException("the right operator is of type post or constant" +
                                         " while the left operator " +
@@ -1003,76 +862,81 @@ public final class Main {
                                         "so the left operator will require an operand to work.");
                             else
                                 return opInt.getOperator() + "";
-                        default : throw new ExpressionException("unknown type");
+                        default:
+                            throw new ExpressionException("unknown type");
                     }
-                case TYPE_PRE :
+                }
+                case TYPE_PRE -> {
                     if (right_ops == null)
                         return opInt.getOperator() + "";
-                    switch(right_ops.getType()){
-                        case TYPE_BOTH :
-                        case TYPE_PRE :
+                    switch (right_ops.getType()) {
+                        case TYPE_BOTH:
+                        case TYPE_PRE:
                             if (precedence_right > precedence_current)
                                 throw new ExpressionException("the right operator is of type both or pre" +
                                         " and has a greater precedence than the left operator.");
                             else
                                 return opInt.getOperator() + "";
-                        case TYPE_POST :
-                        case TYPE_CONSTANT :
+                        case TYPE_POST:
+                        case TYPE_CONSTANT:
                             return opInt.getOperator() + "*";
-                        default :
+                        default:
                             throw new ExpressionException("unknown type");
                     }
-                case TYPE_POST :
+                }
+                case TYPE_POST -> {
                     if (right_ops == null)
                         throw new ExpressionException("the type is post, however the right operand is a " +
                                 "closing bracket.");
-                    switch(right_ops.getType()){
-                        case TYPE_BOTH :
+                    switch (right_ops.getType()) {
+                        case TYPE_BOTH:
                             if (right_ops.getOperator() == '+' || right_ops.getOperator() == '-')
                                 return opInt.getOperator() + "";
-                        case TYPE_PRE :
+                        case TYPE_PRE:
                             throw new ExpressionException("the right operator is of type both and the left operator" +
                                     " is of type post, an operand in between is required regardless of the precedence");
-                        case TYPE_POST :
+                        case TYPE_POST:
                             if (precedence_current > precedence_right)
                                 throw new ExpressionException("the left and right operator, both is of type post, " +
                                         "but the left operator has a greater precedence.");
                             else
                                 return "*" + opInt.getOperator();
-                        case TYPE_CONSTANT :
+                        case TYPE_CONSTANT:
                             if (precedence_current >= precedence_right)
                                 throw new ExpressionException("the left and right operator, both is of type " +
                                         "constant, but the left operator has a greater precedence.");
                             else
                                 return "*" + opInt.getOperator();
-                        default :
+                        default:
                             throw new ExpressionException("unknown type");
                     }
-                case TYPE_CONSTANT :
+                }
+                case TYPE_CONSTANT -> {
                     if (right_ops == null)
                         return "*" + opInt.getOperator() + "";
-                    switch(right_ops.getType()){
-                        case TYPE_BOTH :
-                        case TYPE_PRE :
+                    switch (right_ops.getType()) {
+                        case TYPE_BOTH:
+                        case TYPE_PRE:
                             if (precedence_right > precedence_current)
                                 throw new ExpressionException("the right operator is either of type pre or both " +
                                         "and has a greater precedence than the left one.");
                             else
                                 return "*" + opInt.getOperator();
-                        case TYPE_POST :
-                        case TYPE_CONSTANT :
-                            return "*" + opInt.getOperator() +  "*";
-                        default :
+                        case TYPE_POST:
+                        case TYPE_CONSTANT:
+                            return "*" + opInt.getOperator() + "*";
+                        default:
                             throw new ExpressionException("unknown type");
                     }
+                }
             }
         }else if (r) {
             //the left char is guaranteed to be an operator or (an opening bracket or empty).
             operationsInterface left_ops = getCharAsAnOperator(left);
             int precedence_current = opInt.getPrecedence();
             int precedence_left = left_ops != null ? left_ops.getPrecedence() : -1;
-            switch (opInt.getType()){
-                case TYPE_BOTH :
+            switch (opInt.getType()) {
+                case TYPE_BOTH -> {
                     if (opInt.getOperator() == '+' || opInt.getOperator() == '-')
                         return opInt.getOperator() + "";
                     if (left_ops == null)
@@ -1081,57 +945,61 @@ public final class Main {
                                     " is an opening bracket");
                         else
                             return opInt.getOperator() + "";
-                    switch(left_ops.getType()){
-                        case TYPE_PRE :
-                        case TYPE_CONSTANT :
+                    switch (left_ops.getType()) {
+                        case TYPE_PRE:
+                        case TYPE_CONSTANT:
                             if (precedence_current <= precedence_left)
                                 return opInt.getOperator() + "";
-                        default :
+                        default:
                             return opInt.getOperator() + "";
                     }
-                case TYPE_PRE :
+                }
+                case TYPE_PRE -> {
                     if (left_ops == null)
                         throw new ExpressionException("the operator is of type pre but the left operand" +
                                 " is an opening bracket");
-                    switch(left_ops.getType()){
-                        case TYPE_PRE :
+                    switch (left_ops.getType()) {
+                        case TYPE_PRE:
                             if (precedence_current <= precedence_left)
                                 return opInt.getOperator() + "*";
-                        case TYPE_CONSTANT :
+                        case TYPE_CONSTANT:
                             if (precedence_current <= precedence_left)
                                 return opInt.getOperator() + "";
-                        default :
+                        default:
                             return opInt.getOperator() + "*";
                     }
-                case TYPE_POST :
+                }
+                case TYPE_POST -> {
                     if (left_ops == null)
                         return "" + opInt.getOperator();
-                    switch(left_ops.getType()){
-                        case TYPE_BOTH :
+                    switch (left_ops.getType()) {
+                        case TYPE_BOTH:
                             if (precedence_left < precedence_current)
                                 return opInt.getOperator() + "";
-                        case TYPE_POST :
+                        case TYPE_POST:
                             if (precedence_left <= precedence_current)
                                 return opInt.getOperator() + "";
-                        case TYPE_CONSTANT :
+                        case TYPE_CONSTANT:
                             return opInt.getOperator() + "";
-                        default :
+                        default:
                             return opInt.getOperator() + "";
                     }
-                case TYPE_CONSTANT :
+                }
+                case TYPE_CONSTANT -> {
                     if (left_ops == null)
                         return "" + opInt.getOperator() + "*";
-                    switch(left_ops.getType()){
-                        case TYPE_BOTH :
-                        case TYPE_POST :
+                    switch (left_ops.getType()) {
+                        case TYPE_BOTH:
+                        case TYPE_POST:
                             if (precedence_left < precedence_current)
                                 return opInt.getOperator() + "*";
-                        case TYPE_PRE :
-                        case TYPE_CONSTANT :
+                        case TYPE_PRE:
+                        case TYPE_CONSTANT:
                             return opInt.getOperator() + "*";
-                        default :
+                        default:
                             return opInt.getOperator() + "*";
                     }
+                }
             }
         }else {
             //both left and right char are guaranteed to be an operator or a set of an opening and a closing bracket.
@@ -1221,19 +1089,19 @@ public final class Main {
             }else {
                 //both side is an operation, and I have no idea how will I deal with this.
                 StringBuilder builder = new StringBuilder();
-                switch(opInt.getType()){
-                    case TYPE_BOTH :
+                switch (opInt.getType()) {
+                    case TYPE_BOTH -> {
                         builder.append(opInt.getOperator());
-                        switch(right_operator.getType()){
-                            case TYPE_BOTH :
+                        switch (right_operator.getType()) {
+                            case TYPE_BOTH:
                                 if (right_operator.getOperator() == '+' || right_operator.getOperator() == '-')
                                     return opInt.getOperator() + "";
-                            case TYPE_PRE :
+                            case TYPE_PRE:
                                 throw new ExpressionException("the right operand is of type pre or both while" +
                                         " the left operator" +
                                         " is of type both, they both need an operand in between to work.");
-                            case TYPE_POST :
-                            case TYPE_CONSTANT :
+                            case TYPE_POST:
+                            case TYPE_CONSTANT:
                                 if (precedence_current >= precedence_right)
                                     throw new ExpressionException("the right operator is of type post or constant" +
                                             " while the left operator " +
@@ -1242,61 +1110,61 @@ public final class Main {
                                             "so the left operator will require an operand to work.");
                                 break;
                         }
-                        break;
-                    case TYPE_PRE :
+                    }
+                    case TYPE_PRE -> {
                         builder.append(opInt.getOperator());
-                        switch(right_operator.getType()){
-                            case TYPE_BOTH :
-                            case TYPE_PRE :
+                        switch (right_operator.getType()) {
+                            case TYPE_BOTH:
+                            case TYPE_PRE:
                                 if (precedence_right > precedence_current)
                                     throw new ExpressionException("the right operator is of type both or pre" +
                                             " and has a greater precedence than the left operator.");
                                 break;
-                            case TYPE_POST :
-                            case TYPE_CONSTANT :
+                            case TYPE_POST:
+                            case TYPE_CONSTANT:
                                 builder.append("*");
                                 break;
                         }
-                        break;
-                    case TYPE_POST :
+                    }
+                    case TYPE_POST -> {
                         builder.append(opInt.getOperator());
-                        switch(right_operator.getType()){
-                            case TYPE_BOTH :
+                        switch (right_operator.getType()) {
+                            case TYPE_BOTH:
                                 if (right_operator.getOperator() == '+' || right_operator.getOperator() == '-')
                                     return opInt.getOperator() + "";
-                            case TYPE_PRE :
+                            case TYPE_PRE:
                                 throw new ExpressionException("the right operator is of" +
                                         " type both and the left operator" +
                                         " is of type post, an operand in between is" +
                                         " required regardless of the precedence");
-                            case TYPE_POST :
+                            case TYPE_POST:
                                 if (precedence_current > precedence_right)
                                     throw new ExpressionException("the left and right operator, " +
                                             "both is of type post, " +
                                             "but the left operator has a greater precedence.");
                                 break;
-                            case TYPE_CONSTANT :
+                            case TYPE_CONSTANT:
                                 if (precedence_current >= precedence_right)
                                     throw new ExpressionException("the left and right operator, both is of type " +
                                             "constant, but the left operator has a greater precedence.");
                                 break;
                         }
-                        break;
-                    case TYPE_CONSTANT :
+                    }
+                    case TYPE_CONSTANT -> {
                         builder.append(opInt.getOperator());
-                        switch(right_operator.getType()){
-                            case TYPE_BOTH :
-                            case TYPE_PRE :
+                        switch (right_operator.getType()) {
+                            case TYPE_BOTH:
+                            case TYPE_PRE:
                                 if (precedence_right > precedence_current)
                                     throw new ExpressionException("the right operator is either of type pre or both " +
                                             "and has a greater precedence than the left one.");
                                 break;
-                            case TYPE_POST :
-                            case TYPE_CONSTANT :
+                            case TYPE_POST:
+                            case TYPE_CONSTANT:
                                 builder.append("*");
                                 break;
                         }
-                        break;
+                    }
                 }
                 return builder.toString();
             }
@@ -1304,7 +1172,7 @@ public final class Main {
         return opInt.getOperator() + "";
     }
 
-    private static DispatchParcel dispatcher(ComplexNumber complex_left, ComplexNumber complex_right, Set set_left,
+    private DispatchParcel dispatcher(ComplexNumber complex_left, ComplexNumber complex_right, Set set_left,
                                              Set set_right, String str_left, String str_right,
                                              operationsInterface whichOperation){
         DispatchParcel parcel = new DispatchParcel();
@@ -1318,7 +1186,7 @@ public final class Main {
         if (str_right != null)
             str_right = str_right.replace("\"", "");
 
-        //only two of these parameters ever gonna be non-null.
+        //only two of these parameters ever going to be non-null.
         //do not handle complex numbers in this block, I've already written the code below
         //and have no intention of writing it again.
         if (complex_left != null){
@@ -1424,28 +1292,26 @@ public final class Main {
                         whichOperation.function(complex_left, right_real, IOTA_FALSE);
                     else if (left_real != 0 && left_iota != 0 && right_real == 0 && right_iota != 0)
                         whichOperation.function(complex_left, right_iota, IOTA_TRUE);
-                    else if (left_real != 0 && left_iota == 0 && right_real != 0 && right_iota != 0)
+                    else if (left_real != 0 && left_iota == 0 && right_real != 0)
                         whichOperation.function(left_real, complex_right, IOTA_FALSE);
-                    else if (left_real == 0 && left_iota != 0 && right_real != 0 && right_iota != 0)
+                    else if (left_real == 0 && left_iota != 0 && right_real != 0)
                         whichOperation.function(left_iota, complex_right, IOTA_TRUE);
-                    else if (left_real != 0 && left_iota != 0 && right_real != 0 && right_iota != 0)
+                    else if (left_real != 0 && left_iota != 0 && right_real != 0)
                         whichOperation.function(complex_left, complex_right);
                     else if (left_real == 0 && left_iota == 0 && right_real == 0 && right_iota == 0)
                         whichOperation.function(left_real, right_real, IOTA_NONE);
-                    else if (left_real != 0 && left_iota == 0 && right_real == 0 && right_iota == 0)
+                    else if (left_real != 0 && left_iota == 0)
                         whichOperation.function(left_real, right_real, IOTA_NONE);
                     else if (left_real == 0 && left_iota == 0 && right_real != 0 && right_iota == 0)
                         whichOperation.function(left_real, right_real, IOTA_NONE);
-                    else if (left_real == 0 && left_iota != 0 && right_real == 0 && right_iota == 0)
+                    else if (left_real == 0 && left_iota != 0)
                         whichOperation.function(left_iota, right_real, IOTA_FIRST);
-                    else if (left_real == 0 && left_iota == 0 && right_real == 0 && right_iota != 0)
+                    else if (left_real == 0 && right_real == 0)
                         whichOperation.function(left_real, right_iota, IOTA_SECOND);
-                    else if (left_real == 0 && left_iota == 0 && right_real != 0 && right_iota != 0)
-                        whichOperation.function(complex_left, complex_right);
-                    else if (left_real != 0 && left_iota != 0 && right_real == 0 && right_iota == 0)
+                    else if (left_real == 0)
                         whichOperation.function(complex_left, complex_right);
                     else
-                        throw new IllegalStateException("Unexpected condition in dispatcher");
+                        whichOperation.function(complex_left, complex_right);
                     break;
                 case TYPE_PRE:
                     if (left_real != 0 && left_iota != 0)
@@ -1506,7 +1372,7 @@ public final class Main {
 
     //the caller should take care if the sub_expression is empty or not, the dispatcher
     //will not resolve any problems.
-    private static DispatchParcel functionDispatcher(Stack<String> stack, functionsInterface fs){
+    private DispatchParcel functionDispatcher(Stack<String> stack, functionsInterface fs){
         bracketReplacement(stack);
 
         int[] map = fs.getFunctionMap();
@@ -1731,36 +1597,40 @@ public final class Main {
 
         int resultFlag = fs.getResultFlag();
         ComplexNumber cn;
-        switch(resultFlag){
-            case RESULT_REAL :
+        switch (resultFlag) {
+            case RESULT_REAL -> {
                 cn = convertToComplexNumber(fs.getReal(), false);
                 parcel.type = DISPATCHED_TYPE_COMPLEX;
                 parcel.number = cn;
                 return parcel;
-            case RESULT_IOTA :
+            }
+            case RESULT_IOTA -> {
                 cn = convertToComplexNumber(fs.getIota(), true);
                 parcel.type = DISPATCHED_TYPE_COMPLEX;
                 parcel.number = cn;
                 return parcel;
-            case RESULT_COMPLEX :
+            }
+            case RESULT_COMPLEX -> {
                 cn = fs.getComplex();
                 parcel.type = DISPATCHED_TYPE_COMPLEX;
                 parcel.number = cn;
                 return parcel;
-            case RESULT_SET :
+            }
+            case RESULT_SET -> {
                 parcel.type = DISPATCHED_TYPE_SET;
                 parcel.set = fs.getSet();
                 return parcel;
-            case RESULT_STRING :
+            }
+            case RESULT_STRING -> {
                 parcel.type = DISPATCHED_TYPE_STRING;
                 parcel.string = fs.getString();
                 return parcel;
-            default :
-                throw new IllegalArgumentException("unknown type");
+            }
+            default -> throw new IllegalArgumentException("unknown type");
         }
     }
 
-    private static operationsInterface getCharAsAnOperator(char c){
+    private operationsInterface getCharAsAnOperator(char c){
         operationsInterface opInt = null;
         operations.reset();
         while (operations.loop()){
@@ -1773,7 +1643,7 @@ public final class Main {
         return opInt;
     }
 
-    private static String SortResult(Stack<String> result){
+    private String SortResult(Stack<String> result){
         ComplexNumber cn = null;
         boolean isComplex = false;
 
@@ -1788,13 +1658,13 @@ public final class Main {
                 case DISPATCHED_TYPE_STRING :
                     return parcel.string;
                 case DISPATCHED_TYPE_SET :
-                    return convertSetToString(parcel.set, true);
+                    return convertSetToString(parcel.set);
             }
         } else if (item.charAt(0) == string_token){
             return item;
         } else if (item.equals("}")){
             Set set = setGiver(result);
-            return convertSetToString(set, true);
+            return convertSetToString(set);
         } else {
             cn = convertToComplexNumber(item);
             isComplex = true;
@@ -1811,9 +1681,9 @@ public final class Main {
                     return (int) cn.iota + "i";
                 else
                     return cn.iota + "i";
-            } else if (cn.real == 0 && cn.iota == 0) {
+            } else if (cn.real == 0) {
                 return "0";
-            } else if (cn.real != 0 && cn.iota != 0) {
+            } else {
                 String builder = "";
                 if (cn.real % 1 == 0)
                     builder += (cn.real + "").split("\\.")[0];
@@ -1827,12 +1697,11 @@ public final class Main {
                     builder += cn.iota + "i";
                 return builder;
             }
-            throw new IllegalStateException("unexpected condition in the SortResult function");
         }
         return "no result and only god knows why";
     }
 
-    private static void bracketReplacement(Stack<String> stack){
+    private void bracketReplacement(Stack<String> stack){
         stack.iterateRestrict();
         stack.reset();
         while(stack.loop()){
@@ -1844,60 +1713,7 @@ public final class Main {
         }
     }
 
-    private static String convertSetToString(Set set, boolean firstIteration) {
-        StringBuilder builder = new StringBuilder();
-
-        if (firstIteration)
-            builder.append('{');
-
-        while(set.hasNext(ELEMENT_REAL)) {
-            double real = set.pullReal();
-            if (real % 1 == 0)
-                builder.append((real + "").split("\\.")[0]).append(',');
-            else
-                builder.append(real).append(',');
-        }
-
-        while(set.hasNext(ELEMENT_IOTA)) {
-            double iota = set.pullIota();
-            if (iota %1 == 0)
-                builder.append((iota + "").split("\\.")[0]).append(',');
-            else
-                builder.append(iota).append(',');
-        }
-
-        while(set.hasNext(ELEMENT_COMPLEX)) {
-            ComplexNumber cn = set.pullComplex();
-            if (cn.real % 1 == 0)
-                builder.append((cn.real + "").split("\\.")[0]);
-            else
-                builder.append(cn.real);
-            if (cn.iota > 0)
-                builder.append("+");
-            if (cn.iota % 1 == 0)
-                builder.append((cn.iota + "").split("\\.")[0]).append("i");
-            else
-                builder.append(cn.iota).append("i");
-            builder.append(',');
-        }
-
-        while(set.hasNext(ELEMENT_STRING))
-            builder.append(set.pullString()).append(',');
-
-        while(set.hasNext(ELEMENT_SET))
-            builder.append('{').append(convertSetToString(set.pullSet(), false))
-                    .append('}').append(',');
-
-        int last_pos = builder.length() - 1;
-        if (builder.charAt(last_pos) == ',')
-            builder.deleteCharAt(last_pos);
-
-        if (firstIteration)
-            builder.append('}');
-        return builder.toString();
-    }
-
-    private static ComplexNumber convertToComplexNumber(String complexString){
+    private ComplexNumber convertToComplexNumber(String complexString){
         ComplexNumber number = new ComplexNumber();
         StringBuilder currentStep = new StringBuilder();
 
@@ -1929,7 +1745,7 @@ public final class Main {
         return convertComplexToString(cn, true);
     }
 
-    private static String convertComplexToString(ComplexNumber cn, boolean c_t){
+    private static String convertComplexToString(ComplexNumber cn, @SuppressWarnings("SameParameterValue") boolean c_t){
         return (c_t ? complex_token : "") + "" + cn.real +
                 (cn.iota >= 0 ? "+" : "") + cn.iota + "i" + (c_t ? complex_token : "");
     }
