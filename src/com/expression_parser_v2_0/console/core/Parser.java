@@ -46,7 +46,7 @@ public final class Parser {
     private String GeneralParser(String expression){
         expression = expression.trim();
 
-        StringBuilder space_less = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         boolean isInQuote = false;
         for(int i = 0; i < expression.length(); i++){
             char c = expression.charAt(i);
@@ -56,10 +56,10 @@ public final class Parser {
             if ((c == ' '/*|| handle tab pressing here c == ' '*/) && !isInQuote)
                 continue;
 
-            space_less.append(c);
+            builder.append(c);
         }
 
-        expression = space_less.toString();
+        expression = builder.toString();
 
         //I have to find a better approach for god's sake.
         expression = expression.replaceAll("\\)\\(", ")*(");
@@ -94,17 +94,17 @@ public final class Parser {
         }
 
         //create name array
-        StringBuilder nameBuilder = new StringBuilder();
+        builder.setLength(0);
         operations.reset();
         while (operations.loop()){
             operationsInterface opInt = operations.get();
             if (opInt.getOperationNames() != null) {
                 for (String name : opInt.getOperationNames()){
                     if (!name.isEmpty()) {
-                        nameBuilder.append(name);
-                        nameBuilder.append(".");
-                        nameBuilder.append(opInt.getOperator());
-                        nameBuilder.append("?");
+                        builder.append(name);
+                        builder.append(".");
+                        builder.append(opInt.getOperator());
+                        builder.append("?");
                     }
                 }
             }
@@ -112,7 +112,7 @@ public final class Parser {
         //sort name array according to their size in descending order,
         //using bubble sort? the name array,
         //cannot be that big to cause any significant performance drop.
-        String[] list = nameBuilder.toString().split("\\?");
+        String[] list = builder.toString().split("\\?");
         for (int i = 0; i < list.length; i++){
             for (int j = i + 1; j < list.length; j++){
                 String temp_i = list[i];
@@ -129,9 +129,46 @@ public final class Parser {
             expression = expression.replace(contents[0], contents[1]);
         }
 
-        int stringCounter = 0;
+        //looping in forward direction to check only the post operators.
+        //operator identifiers does not exist yet, until I get to the complex converter.
+        builder.setLength(0);
+        char op = 0;
+        boolean found = false;
+        int built_count = 0;
+        for (int i = 0; i < expression.length(); i++){
+            char c = expression.charAt(i);
+            if (!Character.isDigit(i)){
+                if (!found) {
+                    if (built_count > 0)
+                        while(built_count != 0){
+                            builder.append(')');
+                            built_count--;
+                        }
+                    var operator = getCharAsAnOperator(c);
+                    if (operator != null && operator.getType() == TYPE_POST) {
+                        op = c;
+                        found = true;
+                    }
+                } else {
+                    if (op == c) {
+                        builder.append('(');
+                        built_count++;
+                    }
+                }
+            }else{
+                if (found)
+                    found = false;
+            }
+            builder.append(c);
+        }
+        while(built_count != 0) {
+            builder.append(')');
+            built_count--;
+        }
+        expression = builder.toString();
 
-        StringBuilder builder = new StringBuilder();
+        builder.setLength(0);
+        int stringCounter = 0;
         //only solve for the bracket related implicit multiplication
         for (int i = 0; i < expression.length(); i++){
             char c = expression.charAt(i);
@@ -168,6 +205,10 @@ public final class Parser {
         return expression;
     }
 
+    //ignore the duplicate expression warnings, it's just the way for the intellij
+    //to say that it's better than us humans, no you're not, now shut up.
+    //reason being that the string builder is cleared by the method of setLength(0),
+    //which apparently is not recognized by the intellij, hence, it's clearly dumber.
     private String complexConverter(String expression){
         StringBuilder builder = new StringBuilder();
         StringBuilder currentStep = new StringBuilder();
@@ -203,15 +244,15 @@ public final class Parser {
                 }
             }else{
                 if (!currentStep.toString().equals("")){
+                    //noinspection DuplicateExpressions
+                    double value = Double.parseDouble(currentStep.toString().
+                            replaceAll("i", ""));
                     if (currentStep.toString().contains("i")){
-                        builder.append(convertToComplexString(Double.parseDouble(
-                                currentStep.toString().replaceAll("i", "")),
-                                true));
+                        builder.append(convertToComplexString(value, true));
                     }else{
-                        builder.append(convertToComplexString(Double.parseDouble(
-                                currentStep.toString()), false));
+                        builder.append(convertToComplexString(value, false));
                     }
-                    currentStep = new StringBuilder();
+                    currentStep.setLength(0);
                 }
                 if (c.matches("[+-]")){
                     char a = 0, p = 0;
@@ -262,12 +303,13 @@ public final class Parser {
             }
         }
         if (!currentStep.toString().equals("")){
+            //noinspection DuplicateExpressions
+            double value = Double.parseDouble(
+                    currentStep.toString().replaceAll("i", ""));
             if (currentStep.toString().contains("i")){
-                builder.append(convertToComplexString(Double.parseDouble(
-                        currentStep.toString().replaceAll("i", "")), true));
+                builder.append(convertToComplexString(value, true));
             }else{
-                builder.append(convertToComplexString(
-                        Double.parseDouble(currentStep.toString()), false));
+                builder.append(convertToComplexString(value, false));
             }
         }
         return builder.toString();
@@ -526,6 +568,7 @@ public final class Parser {
         return output;
     }
 
+    //this function always assumes that the opening bracket is not to be considered.
     private Set setGiver(Stack<String> stack){
         int set_count = 1;
         Stack<String> st = new Stack<>();
@@ -704,7 +747,7 @@ public final class Parser {
         return expression;
     }
 
-    public Set setHandler(char opening_bracket, char closing_bracket, Stack<String> stack){
+    private Set setHandler(char opening_bracket, char closing_bracket, Stack<String> stack){
         if (stack.getLength() == 0){
             return new Set();
         }
@@ -1321,7 +1364,7 @@ public final class Parser {
                     else if (left_iota != 0)
                         whichOperation.function(left_iota, IOTA_TRUE);
                     else
-                        whichOperation.function(complex_left);
+                        whichOperation.function(0, IOTA_FALSE);
                     break;
                 case TYPE_POST:
                     if (right_real != 0 && right_iota != 0)
@@ -1331,7 +1374,7 @@ public final class Parser {
                     else if (right_iota != 0)
                         whichOperation.function(right_iota, IOTA_TRUE);
                     else
-                        whichOperation.function(complex_right);
+                        whichOperation.function(0, IOTA_FALSE);
                     break;
                 case TYPE_CONSTANT:
                     whichOperation.function();
@@ -1464,7 +1507,7 @@ public final class Parser {
                             break;
                         } else if (item.charAt(0) == string_token) {
                             arguments.push(new Argument(0, 0,
-                                    null, item, null));
+                                    null, item.replace(string_token + "", ""), null));
                             break;
                         }
                         throw new IllegalArgumentException("not a string");
@@ -1559,7 +1602,7 @@ public final class Parser {
                             break;
                         } else if (item.charAt(0) == string_token) {
                             arguments.push(new Argument(0, 0,
-                                    null, item, null));
+                                    null, item.replace(string_token + "", ""), null));
                             break;
                         }
                         throw new IllegalArgumentException("not a string");

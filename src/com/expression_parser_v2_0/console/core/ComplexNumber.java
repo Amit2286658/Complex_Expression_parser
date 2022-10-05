@@ -11,4 +11,9 @@ public final class ComplexNumber {
         this.real = real;
         this.iota = iota;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ComplexNumber cn && this.real == cn.real && this.iota == cn.iota;
+    }
 }

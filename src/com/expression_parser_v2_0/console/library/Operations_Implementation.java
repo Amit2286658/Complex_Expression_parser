@@ -14,7 +14,7 @@ public abstract class Operations_Implementation implements operationsInterface {
 
     @Override
     public String[] getOperationNames() {
-        throw new UnsupportedOperationException("operation not implemented yet");
+        return null;
     }
 
     @Override

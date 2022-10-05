@@ -64,59 +64,59 @@ public class Addition extends Operations_Implementation {
 
     @Override
     public void function(double d1, double d2, int iotaStatus) {
-        switch(iotaStatus){
-            case IOTA_BOTH :
+        switch (iotaStatus) {
+            case IOTA_BOTH -> {
                 iotaResult = d1 + d2;
                 resultFlag = RESULT_IOTA;
-                break;
-            case IOTA_NONE :
+            }
+            case IOTA_NONE -> {
                 realResult = d1 + d2;
                 resultFlag = RESULT_REAL;
-                break;
-            case IOTA_FIRST :
+            }
+            case IOTA_FIRST -> {
                 complexResult = new ComplexNumber();
                 complexResult.real = d2;
                 complexResult.iota = d1;
                 resultFlag = RESULT_COMPLEX;
-                break;
-            case IOTA_SECOND :
+            }
+            case IOTA_SECOND -> {
                 complexResult = new ComplexNumber();
                 complexResult.real = d1;
                 complexResult.iota = d2;
                 resultFlag = RESULT_COMPLEX;
-                break;
+            }
         }
     }
 
     @Override
     public void function(ComplexNumber c1, double d2, int iotaStatus) {
-        switch(iotaStatus) {
-            case IOTA_TRUE :
+        switch (iotaStatus) {
+            case IOTA_TRUE -> {
                 c1.iota += d2;
                 complexResult = c1;
                 resultFlag = RESULT_COMPLEX;
-                break;
-            case IOTA_FALSE :
+            }
+            case IOTA_FALSE -> {
                 c1.real += d2;
                 complexResult = c1;
                 resultFlag = RESULT_COMPLEX;
-                break;
+            }
         }
     }
 
     @Override
     public void function(double d1, ComplexNumber c2, int iotaStatus) {
-        switch(iotaStatus) {
-            case IOTA_TRUE :
+        switch (iotaStatus) {
+            case IOTA_TRUE -> {
                 c2.iota += d1;
                 complexResult = c2;
                 resultFlag = RESULT_COMPLEX;
-                break;
-            case IOTA_FALSE :
+            }
+            case IOTA_FALSE -> {
                 c2.real += d1;
                 complexResult = c2;
                 resultFlag = RESULT_COMPLEX;
-                break;
+            }
         }
     }
 

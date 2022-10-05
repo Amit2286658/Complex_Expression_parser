@@ -1,5 +1,7 @@
 package com.expression_parser_v2_0.console.core;
 
+import java.util.ArrayList;
+
 import static com.expression_parser_v2_0.console.core.constants.*;
 
 public final class Set{
@@ -99,5 +101,25 @@ public final class Set{
             case ELEMENT_STRING -> strings.hasNext();
             default -> throw new IllegalArgumentException("unknown type");
         };
+    }
+
+    public ArrayList<Double> getRealsAsList(){
+        return reals.getAsList();
+    }
+
+    public ArrayList<Double> getIotasAsList(){
+        return iotas.getAsList();
+    }
+
+    public ArrayList<ComplexNumber> getComplexesAsList(){
+        return complexes.getAsList();
+    }
+
+    public ArrayList<String> getStringsAsList(){
+        return strings.getAsList();
+    }
+
+    public ArrayList<Set> getSetsAsList(){
+        return sets.getAsList();
     }
 }

@@ -3,9 +3,7 @@ package com.expression_parser_v2_0.console.library.functions;
 import com.expression_parser_v2_0.console.core.Argument;
 import com.expression_parser_v2_0.console.core.Set;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
-import com.expression_parser_v2_0.console.core.Utility;
 
-import static com.expression_parser_v2_0.console.core.Utility.displaySet;
 import static com.expression_parser_v2_0.console.core.constants.*;
 
 public class Set_Union extends Functions_Implementation {

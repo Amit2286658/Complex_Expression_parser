@@ -1,5 +1,7 @@
 package com.expression_parser_v2_0.console.core;
 
+import java.util.ArrayList;
+
 //LIFO Structure
 final class Stack<T> {
     private Object[] items;
@@ -12,7 +14,7 @@ final class Stack<T> {
     //for iteration but no actual data modification.
     private int pseudo_counter = -1;
 
-    //for restricting access to certain com.expression_parser_v2_0.console.library.functions depending on the nature of the stack.
+    //for restricting access to certain functions depending on the nature of the stack.
     private boolean restriction = false;
 
     Stack(int size) {
@@ -162,5 +164,16 @@ final class Stack<T> {
         if (!restriction)
             throw new RuntimeException("operation not valid for iterate unrestricted stacks");
         pseudo_counter = pointer;
+    }
+
+    public ArrayList<T> getAsList(){
+        ArrayList<T> list = new ArrayList<>();
+        iterateRestrict();
+        reset();
+        while(loop()){
+            list.add(get());
+        }
+        restriction = false;
+        return list;
     }
 }
