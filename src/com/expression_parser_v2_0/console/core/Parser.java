@@ -436,7 +436,6 @@ public final class Parser {
         }
 
         output = output.reverse();
-        output.iterateRestrict();
         builder.setLength(0);
         output.reset();
         while(output.loop()){
@@ -1745,7 +1744,6 @@ public final class Parser {
     }
 
     private void bracketReplacement(Stack<String> stack){
-        stack.iterateRestrict();
         stack.reset();
         while(stack.loop()){
             String str = stack.get();

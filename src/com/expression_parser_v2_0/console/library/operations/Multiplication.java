@@ -1,6 +1,8 @@
 package com.expression_parser_v2_0.console.library.operations;
 
 import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.core.ExpressionException;
+import com.expression_parser_v2_0.console.core.Set;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
 import static com.expression_parser_v2_0.console.core.constants.*;
@@ -118,5 +120,90 @@ public class Multiplication extends Operations_Implementation {
         c2.iota = d2 + d3;
         complexResult = c2;
         resultFlag = RESULT_COMPLEX;
+    }
+
+    @Override
+    public void function() {
+        throw new ExpressionException("type requires two operands, however none were found");
+    }
+
+    @Override
+    public void function(double d, int iotaStatus) {
+        throw new ExpressionException("type requires two operands, however only one was found");
+    }
+
+    @Override
+    public void function(ComplexNumber cn) {
+        throw new ExpressionException("type requires two operands, however only one was found");
+    }
+
+    @Override
+    public void function(Set s) {
+        throw new ExpressionException("type requires two operands, however only one was found");
+    }
+
+    @Override
+    public void function(Set s1, double d1, int iotaStatus) {
+        super.function(s1, d1, iotaStatus);
+    }
+
+    @Override
+    public void function(double d1, Set s2, int iotaStatus) {
+        super.function(d1, s2, iotaStatus);
+    }
+
+    @Override
+    public void function(Set s1, Set s2) {
+        super.function(s1, s2);
+    }
+
+    @Override
+    public void function(String str) {
+        throw new ExpressionException("type requires two operands, however only one was found");
+    }
+
+    @Override
+    public void function(String str1, double d2, int iotaStatus) {
+        super.function(str1, d2, iotaStatus);
+    }
+
+    @Override
+    public void function(double d1, String str2, int iotaStatus) {
+        super.function(d1, str2, iotaStatus);
+    }
+
+    @Override
+    public void function(String str1, String str2) {
+        super.function(str1, str2);
+    }
+
+    @Override
+    public void function(ComplexNumber c1, Set s2) {
+        super.function(c1, s2);
+    }
+
+    @Override
+    public void function(Set s1, ComplexNumber c2) {
+        super.function(s1, c2);
+    }
+
+    @Override
+    public void function(ComplexNumber c1, String str2) {
+        super.function(c1, str2);
+    }
+
+    @Override
+    public void function(String str2, ComplexNumber c2) {
+        super.function(str2, c2);
+    }
+
+    @Override
+    public void function(Set s1, String str2) {
+        super.function(s1, str2);
+    }
+
+    @Override
+    public void function(String str1, Set s1) {
+        super.function(str1, s1);
     }
 }

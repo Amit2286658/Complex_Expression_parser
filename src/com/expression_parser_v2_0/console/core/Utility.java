@@ -50,10 +50,11 @@ public class Utility {
 
         while(set.hasNext(ELEMENT_IOTA)) {
             double iota = set.pullIota();
-            if (iota %1 == 0)
-                builder.append((iota + "").split("\\.")[0]).append(',');
+            if (iota % 1 == 0)
+                builder.append((iota + "").split("\\.")[0]).append("i");
             else
-                builder.append(iota).append(',');
+                builder.append(iota).append("i");
+            builder.append(',');
         }
 
         while(set.hasNext(ELEMENT_COMPLEX)) {
@@ -72,14 +73,14 @@ public class Utility {
         }
 
         while(set.hasNext(ELEMENT_STRING))
-            builder.append(set.pullString()).append(',');
+            builder.append('"').append(set.pullString()).append('"').append(',');
 
         while(set.hasNext(ELEMENT_SET))
             builder.append('{').append(convertSetToString(set.pullSet(), false))
                     .append('}').append(',');
 
         int last_pos = builder.length() - 1;
-        if (builder.charAt(last_pos) == ',')
+        if (last_pos != -1 && builder.charAt(last_pos) == ',')
             builder.deleteCharAt(last_pos);
 
         if (firstIteration)

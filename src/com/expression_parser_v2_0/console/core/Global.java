@@ -7,8 +7,6 @@ public class Global {
     static {
         operations = new Stack<>();
         functions = new Stack<>();
-        operations.iterateRestrict();
-        functions.iterateRestrict();
     }
 
     @SuppressWarnings("unused")

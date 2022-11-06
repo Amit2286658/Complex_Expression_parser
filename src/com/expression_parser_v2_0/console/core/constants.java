@@ -39,4 +39,11 @@ public class constants {
             DISPATCHED_TYPE_COMPLEX = 1,
             DISPATCHED_TYPE_SET = 2,
             DISPATCHED_TYPE_STRING = 3;
+
+    public static final int 
+            ENGLISH_NUMBER_SYSTEM = 1,
+            INDIAN_NUMBER_SYSTEM = 2,
+            FRENCH_NUMBER_SYSTEM = 3,
+            ENGLISH_NUMBER_SYSTEM_PLACE_DIFFERENCE = 3,
+            INDIAN_NUMBER_SYSTEM_PLACE_DIFFERENCE = 2;
 }

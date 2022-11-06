@@ -20,15 +20,10 @@ public final class Set{
 
     public Set(){
         reals = new Stack<>();
-        reals.iterateRestrict();
         iotas = new Stack<>();
-        iotas.iterateRestrict();
         complexes = new Stack<>();
-        complexes.iterateRestrict();
         strings = new Stack<>();
-        strings.iterateRestrict();
         sets = new Stack<>();
-        sets.iterateRestrict();
     }
 
     //these push com.expression_parser_v2_0.console.library.functions are only available to this whole Parser class, the client class does not

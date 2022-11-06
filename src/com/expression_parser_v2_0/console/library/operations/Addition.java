@@ -1,6 +1,8 @@
 package com.expression_parser_v2_0.console.library.operations;
 
 import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.core.ExpressionException;
+import com.expression_parser_v2_0.console.core.Set;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
 import static com.expression_parser_v2_0.console.core.constants.*;
@@ -12,6 +14,7 @@ public class Addition extends Operations_Implementation {
     double realResult;
     double iotaResult;
     String resultString;
+    Set resultSet;
 
     public Addition() {
         super();
@@ -60,6 +63,11 @@ public class Addition extends Operations_Implementation {
     @Override
     public ComplexNumber getComplex() {
         return complexResult;
+    }
+
+    @Override
+    public Set getSet() {
+        return resultSet;
     }
 
     @Override
@@ -132,5 +140,110 @@ public class Addition extends Operations_Implementation {
     public void function(String str1, String str2) {
         resultString = str1 + str2;
         resultFlag = RESULT_STRING;
+    }
+
+    @Override
+    public void function(Set s1, double d2, int iotaStatus) {
+        if (iotaStatus == IOTA_TRUE){
+            s1.pushIota(d2);
+        } else {
+            s1.pushReal(d2);
+        }
+        resultSet = s1;
+        resultFlag = RESULT_SET;
+    }
+
+    @Override
+    public void function(double d1, Set s2, int iotaStatus) {
+        if (iotaStatus == IOTA_TRUE){
+            s2.pushIota(d1);
+        } else {
+            s2.pushReal(d1);
+        }
+        resultSet = s2;
+        resultFlag = RESULT_SET;
+    }
+
+    @Override
+    public void function(Set s1, Set s2) {
+        s1.pushSet(s2);
+        resultSet = s1;
+        resultFlag = RESULT_SET;
+    }
+
+    @Override
+    public void function(String str1, double d2, int iotaStatus) {
+        str1 += d2 + (iotaStatus == IOTA_TRUE ? "i" : "");
+        resultString = str1;
+        resultFlag = RESULT_STRING;
+    }
+
+    @Override
+    public void function(double d1, String str2, int iotaStatus) {
+        resultString = d1 + (iotaStatus == IOTA_TRUE ? "i" : "") + str2;
+        resultFlag = RESULT_STRING;
+    }
+
+    @Override
+    public void function(ComplexNumber c1, Set s2) {
+        s2.pushComplex(c1);
+        resultSet = s2;
+        resultFlag = RESULT_SET;
+    }
+
+    @Override
+    public void function(Set s1, ComplexNumber c2) {
+        s1.pushComplex(c2);
+        resultSet = s1;
+        resultFlag = RESULT_SET;
+    }
+
+    @Override
+    public void function(ComplexNumber c1, String str2) {
+        throw new ExpressionException("no meaningful operands");
+    }
+
+    @Override
+    public void function(String str2, ComplexNumber c2) {
+        throw new ExpressionException("no meaningful operands");
+    }
+
+    @Override
+    public void function(Set s1, String str2) {
+        s1.pushString(str2);
+        resultSet = s1;
+        resultFlag = RESULT_SET;
+    }
+
+    @Override
+    public void function(String str1, Set s2) {
+        s2.pushString(str1);
+        resultSet = s2;
+        resultFlag = RESULT_SET;
+    }
+
+    @Override
+    public void function() {
+        throw new ExpressionException("type requires two operands, however none were found");
+    }
+
+    @Override
+    public void function(double d, int iotaStatus) {
+        throw new ExpressionException("type requires two operands, however only one was found");
+    }
+
+    @Override
+    public void function(ComplexNumber cn) {
+        throw new ExpressionException("type requires two operands, however only one was found");
+    }
+
+    @Override
+    public void function(Set s) {
+        throw new ExpressionException("type requires two operands, however only one was found");
+    }
+
+    @Override
+    public void function(String str) {
+        throw new ExpressionException("type requires two operands, however only one was found");
     }
 }

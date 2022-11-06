@@ -1,7 +1,7 @@
 package com.expression_parser_v2_0.console.core;
 
-class ExpressionException extends RuntimeException {
-    ExpressionException(String message){
+public class ExpressionException extends RuntimeException {
+    public ExpressionException(String message){
         super(message);
     }
 }

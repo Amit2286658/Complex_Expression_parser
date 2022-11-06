@@ -3,7 +3,7 @@ package com.expression_parser_v2_0.console.core;
 import java.util.ArrayList;
 
 //LIFO Structure
-final class Stack<T> {
+public final class Stack<T> {
     private Object[] items;
     //internal Stack pointer;
     private int pointer = -1;
@@ -13,9 +13,6 @@ final class Stack<T> {
 
     //for iteration but no actual data modification.
     private int pseudo_counter = -1;
-
-    //for restricting access to certain functions depending on the nature of the stack.
-    private boolean restriction = false;
 
     Stack(int size) {
         items = new Object[size];
@@ -53,6 +50,7 @@ final class Stack<T> {
     }
 
     @SuppressWarnings("unchecked")
+    public
     T pop(){
         if (pointer < 0)
             throw new IndexOutOfBoundsException("pointer is out of bounds");
@@ -132,15 +130,11 @@ final class Stack<T> {
 
     //iteration purpose com.expression_parser_v2_0.console.library.functions.
     boolean loop(){
-        if (!restriction)
-            throw new RuntimeException("com.expression_parser_v2_0.console.library.operations not valid for iterate unrestricted stacks");
         return pseudo_counter >= 0;
     }
 
     @SuppressWarnings("unchecked")
     T get(){
-        if (!restriction)
-            throw new RuntimeException("operation not valid for iterate unrestricted stacks");
         T item = (T) items[pseudo_counter];
         pseudo_counter--;
         return item;
@@ -150,30 +144,19 @@ final class Stack<T> {
     //doing so otherwise will lead to unexpected results, not necessarily an exception,
     //but a completely messed up stack.
     void replace(T item){
-        if (!restriction)
-            throw new RuntimeException("operation not valid for iterate unrestricted stacks");
         items[pseudo_counter + 1] = item;
     }
 
-    //A one way operation. once set the stacks' nature cannot be changed.
-    void iterateRestrict(){
-        restriction = true;
-    }
-
     void reset(){
-        if (!restriction)
-            throw new RuntimeException("operation not valid for iterate unrestricted stacks");
         pseudo_counter = pointer;
     }
 
     public ArrayList<T> getAsList(){
         ArrayList<T> list = new ArrayList<>();
-        iterateRestrict();
         reset();
         while(loop()){
             list.add(get());
         }
-        restriction = false;
         return list;
     }
 }
