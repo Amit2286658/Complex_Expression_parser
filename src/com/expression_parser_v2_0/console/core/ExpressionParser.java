@@ -6,13 +6,7 @@ import static com.expression_parser_v2_0.console.core.constants.*;
 import static com.expression_parser_v2_0.console.core.tokens.*;
 
 //no inheritance.
-public final class Parser {
-    //no instance creation.
-    public Parser(){
-        pointerOutput = new Stack<>();
-        functions = getFunctions();
-        operations = getOperations();
-    }
+public final class ExpressionParser {
     /*
     *my keyboard got smacked last night because something happened..., never mind, these keys
     *don't work any longer, and I'm keeping it here just so that I don't have to open
@@ -22,13 +16,29 @@ public final class Parser {
     | -> latin iota (is that what it's called?), for char "or" condition.
     || -> double latin iota(still in doubt), for string "or" condition.
     */
-    private final Stack<DispatchParcel> pointerOutput;
+    private final Stack<DispatchParcel> pointerOutput = new Stack<>();
 
-    private final Stack<functionsInterface> functions;
-    private final Stack<operationsInterface> operations;
+    private Stack<functionsInterface> functions = null;
+    private Stack<operationsInterface> operations = null;
+
+    //a one way operation
+    public void enableGlobal(){
+        functions = getFunctions();
+        operations = getOperations();
+    }
+
+    public void setFeatures(Stack<operationsInterface> operations,
+        Stack<functionsInterface> functions){
+        if (this.operations == null && this.functions == null){
+            this.operations = operations;
+            this.functions = functions;
+        }else 
+            throw new ExpressionException("method is invalid for this insatnce");
+    }
 
     public String Evaluate(String expression){
-        if (isOperationsEmpty() && isFunctionsEmpty())
+        if ((this.functions == null || this.functions.isEmpty()) && 
+            (this.operations == null || this.operations.isEmpty()))
             return expression;
         if (expression.length() == 0)
             throw new IllegalArgumentException("given input string is empty");
@@ -144,7 +154,7 @@ public final class Parser {
                             builder.append(')');
                             built_count--;
                         }
-                    var operator = getCharAsAnOperator(c);
+                    operationsInterface operator = getCharAsAnOperator(c);
                     if (operator != null && operator.getType() == TYPE_POST) {
                         op = c;
                         found = true;

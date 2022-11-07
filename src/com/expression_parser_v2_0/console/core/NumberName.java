@@ -1,32 +1,18 @@
 package com.expression_parser_v2_0.console.core;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
-
-import com.expression_parser_v2_0.console.core.NumberNameDataSets.EnglishNumberName;
-import com.expression_parser_v2_0.console.core.NumberNameDataSets.FrenchNumberName;
-import com.expression_parser_v2_0.console.core.NumberNameDataSets.IndianNumberName;
-
 public class NumberName {
-    private static NumberNameDataInterface currentNumberNameInterface = new EnglishNumberName();
-
-    IndianNumberName indianInterface = new IndianNumberName();
-    FrenchNumberName frenchInterface = new FrenchNumberName();
-    EnglishNumberName englishInterface = new EnglishNumberName();
+    private NumberNameDataInterface currentNumberNameInterface = null;
 
     //standard point notation meaning after point,
     //each number will be spelt exactly as they are irrespective of their place.
     private boolean standardPointNotation = true;
 
-    public void setNumberSystem(int type){
-        currentNumberNameInterface = switch(type){
-            case INDIAN_NUMBER_SYSTEM -> indianInterface;
-            case FRENCH_NUMBER_SYSTEM -> frenchInterface;
-            default -> englishInterface;
-        };
-    }
-
     public void setStandardPointNotation(boolean value){
         standardPointNotation = value;
+    }
+
+    public void setCurrentNumberNameSystem(NumberNameDataInterface set){
+        this.currentNumberNameInterface = set;
     }
 
     public String convertToNumberName(String number){
@@ -222,7 +208,7 @@ public class NumberName {
         }
 
         double d1 = Double.parseDouble(pointBuilder.toString().length() == 0 ? "0"
-                                             : pointBuilder.toString());
+            : pointBuilder.toString());
         d1 = d1/Math.pow(10, pointBuilder.length());
         accumulator += d1;
         
