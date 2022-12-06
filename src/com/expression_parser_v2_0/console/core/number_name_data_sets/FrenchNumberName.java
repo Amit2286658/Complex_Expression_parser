@@ -1,4 +1,4 @@
-package com.expression_parser_v2_0.console.core.NumberNameDataSets;
+package com.expression_parser_v2_0.console.core.number_name_data_sets;
 
 import java.util.HashMap;
 
@@ -141,11 +141,6 @@ public class FrenchNumberName implements NumberNameDataInterface{
     @Override
     public String getPointName(){
         return "point";
-    }
-
-    @Override
-    public int getInitialGroupDifference() {
-        return 3;
     }
 
     @Override

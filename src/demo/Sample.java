@@ -1,8 +1,5 @@
 package demo;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
-
-import com.expression_parser_v2_0.console.core.NumberName;
 import com.expression_parser_v2_0.console.core.ExpressionParser;
 import com.expression_parser_v2_0.console.vendor.Expression;
 
@@ -14,14 +11,6 @@ public class Sample {
 
         Expression expn = new Expression();
         ExpressionParser parser = expn.getExpressionParser();
-        NumberName numberName = expn.getNumberNameParser();
-        
-        expn.setNumberNameSystem(FRENCH_NUMBER_SYSTEM);
-        //numberName.setStandardPointNotation(false);
-        //String name = numberName.convertToNumberName("77");
-        double number = numberName.convertNameToNumber("deux millions soixante-dix-neuf");
-        //System.out.println(name);
-        System.out.println(number);
 
         Scanner scn = new Scanner(System.in);
         String expression = scn.nextLine();

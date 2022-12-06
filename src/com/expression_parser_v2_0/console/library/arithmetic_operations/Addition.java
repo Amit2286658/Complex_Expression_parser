@@ -1,11 +1,12 @@
-package com.expression_parser_v2_0.console.library.operations;
+package com.expression_parser_v2_0.console.library.arithmetic_operations;
 
 import com.expression_parser_v2_0.console.core.ComplexNumber;
 import com.expression_parser_v2_0.console.core.ExpressionException;
+import com.expression_parser_v2_0.console.core.NumberName;
 import com.expression_parser_v2_0.console.core.Set;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 
 public class Addition extends Operations_Implementation {
 
@@ -16,8 +17,8 @@ public class Addition extends Operations_Implementation {
     String resultString;
     Set resultSet;
 
-    public Addition() {
-        super();
+    public Addition(NumberName numberName) {
+        super(numberName);
     }
 
     @Override
@@ -138,6 +139,16 @@ public class Addition extends Operations_Implementation {
 
     @Override
     public void function(String str1, String str2) {
+        try {
+            double d1 = myNumberName.convertNameToNumber(str1);
+            double d2 = myNumberName.convertNameToNumber(str2);
+            double d3 = d1 + d2;
+            resultFlag = RESULT_REAL;
+            realResult = d3;
+            return;
+        }catch (Exception e){
+            //empty
+        }
         resultString = str1 + str2;
         resultFlag = RESULT_STRING;
     }

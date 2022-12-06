@@ -1,9 +1,10 @@
-package com.expression_parser_v2_0.console.library.operations;
+package com.expression_parser_v2_0.console.library.arithmetic_operations;
 
 import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.core.NumberName;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 
 public class Division extends Operations_Implementation {
 
@@ -12,9 +13,8 @@ public class Division extends Operations_Implementation {
     double realResult;
     double iotaResult;
 
-
-    public Division() {
-        super();
+    public Division(NumberName numberName) {
+        super(numberName);
     }
 
     @Override

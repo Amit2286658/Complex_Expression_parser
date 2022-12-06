@@ -2,9 +2,10 @@ package com.expression_parser_v2_0.console.library.functions;
 
 import com.expression_parser_v2_0.console.core.Argument;
 import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.core.NumberName;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 import static com.expression_parser_v2_0.console.core.Utility.getAngleMode;
 
 public class Sine_iota extends Functions_Implementation {
@@ -14,8 +15,8 @@ public class Sine_iota extends Functions_Implementation {
     double iota;
     ComplexNumber cn;
 
-    public Sine_iota() {
-        super();
+    public Sine_iota(NumberName numberName) {
+        super(numberName);
     }
 
     @Override

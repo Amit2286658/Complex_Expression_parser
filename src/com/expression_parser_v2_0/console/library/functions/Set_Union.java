@@ -1,19 +1,19 @@
 package com.expression_parser_v2_0.console.library.functions;
 
 import com.expression_parser_v2_0.console.core.Argument;
+import com.expression_parser_v2_0.console.core.NumberName;
 import com.expression_parser_v2_0.console.core.Set;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 
 public class Set_Union extends Functions_Implementation {
 
     private Set set;
     private int resultFlag;
 
-
-    public Set_Union() {
-        super();
+    public Set_Union(NumberName numberName) {
+        super(numberName);
     }
 
     @Override

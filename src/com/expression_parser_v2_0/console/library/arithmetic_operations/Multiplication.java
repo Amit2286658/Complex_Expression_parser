@@ -1,11 +1,12 @@
-package com.expression_parser_v2_0.console.library.operations;
+package com.expression_parser_v2_0.console.library.arithmetic_operations;
 
 import com.expression_parser_v2_0.console.core.ComplexNumber;
 import com.expression_parser_v2_0.console.core.ExpressionException;
+import com.expression_parser_v2_0.console.core.NumberName;
 import com.expression_parser_v2_0.console.core.Set;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 
 public class Multiplication extends Operations_Implementation {
 
@@ -14,8 +15,8 @@ public class Multiplication extends Operations_Implementation {
     double realResult;
     double iotaResult;
 
-    public Multiplication() {
-        super();
+    public Multiplication(NumberName numberName) {
+        super(numberName);
     }
 
     @Override

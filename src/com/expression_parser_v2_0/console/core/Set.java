@@ -2,7 +2,7 @@ package com.expression_parser_v2_0.console.core;
 
 import java.util.ArrayList;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 
 public final class Set{
     //type enforcement, but honestly, I have no energy left to implement it right now,

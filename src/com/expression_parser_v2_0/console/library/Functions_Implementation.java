@@ -4,12 +4,23 @@ import com.expression_parser_v2_0.console.core.*;
 
 public abstract class Functions_Implementation implements functionsInterface {
 
+    NumberName myNumberName;
+
     public Functions_Implementation(){
-        this(false);
+        this(false, null);
     }
 
     public Functions_Implementation(boolean override){
+        this(override, null);
+    }
+
+    public Functions_Implementation(NumberName numberName){
+        this(false, numberName);
+    }
+
+    public Functions_Implementation(boolean override, NumberName numberName){
         Global.registerFunction(this, override);
+        myNumberName = numberName;
     }
 
     @Override

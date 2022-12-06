@@ -4,12 +4,23 @@ import com.expression_parser_v2_0.console.core.*;
 
 public abstract class Operations_Implementation implements operationsInterface {
 
+    public NumberName myNumberName;
+
     public Operations_Implementation() {
-        this(false);
+        this(false, null);
     }
 
     public Operations_Implementation(boolean override){
+        this(override, null);
+    }
+
+    public Operations_Implementation(NumberName numberName){
+        this(false, numberName);
+    }
+
+    public Operations_Implementation(boolean override, NumberName numberName){
         Global.registerOperation(this, override);
+        myNumberName = numberName;
     }
 
     @Override

@@ -16,12 +16,13 @@ public class NumberName {
     }
 
     public String convertToNumberName(String number){
+        int step = 0;
         //the grouping of numbers,
         //such as 1 000 000 000 where each group contains 3 digits,
         //or 1 00 00 00 000 for indian number system,
         //where each group contains 2 digits except the first group which has 3.
         //may differ from one number system to another.
-        int place_difference = currentNumberNameInterface.getInitialGroupDifference();
+        int place_difference = currentNumberNameInterface.stepChange(-1);
 
         String[] split = number.split("\\.");
         String num1, num2;
@@ -29,7 +30,7 @@ public class NumberName {
         num2 = split.length > 1 ? split[1] : null;
 
         int place_counter = 0;
-        int step = 0;
+        
         Stack<String> numberNameBuilder = new Stack<>();
         StringBuilder builder = new StringBuilder();
         builder.append(num1);

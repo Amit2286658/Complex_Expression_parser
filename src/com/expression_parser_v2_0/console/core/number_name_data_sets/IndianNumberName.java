@@ -1,16 +1,15 @@
-package com.expression_parser_v2_0.console.core.NumberNameDataSets;
+package com.expression_parser_v2_0.console.core.number_name_data_sets;
 
 import java.util.HashMap;
 
 import com.expression_parser_v2_0.console.core.NumberNameDataInterface;
 import com.expression_parser_v2_0.console.core.Stack;
 
-public class EnglishNumberName implements NumberNameDataInterface {
-
+public class IndianNumberName implements NumberNameDataInterface{
     HashMap<String, Integer> add_map = new HashMap<>();
     HashMap<String, Long> multiply_map = new HashMap<>();
 
-    public EnglishNumberName(){
+    public IndianNumberName(){
         add_map.put(zero, 0);
 
         add_map.put(_1.trim(), 1);
@@ -45,16 +44,17 @@ public class EnglishNumberName implements NumberNameDataInterface {
 
         multiply_map.put(h.trim(), 100L);
         multiply_map.put(th.trim(), 1000L);
-        multiply_map.put(m.trim(), 1000000L);
-        multiply_map.put(b.trim(), 1000000000L);
+        multiply_map.put(l, 100000L);
+        multiply_map.put(c, 10000000L);
+        multiply_map.put(a, 1000000000L);
     }
 
-    //inclusive of spaces
     String point = " point";
     String h = " hundred";
     String th = " thousand";
-    String m = " million";
-    String b = " billion";
+    String l = " lakh";
+    String c = " crore";
+    String a = " arab";
     String zero = "zero";
 
     String
@@ -101,40 +101,46 @@ public class EnglishNumberName implements NumberNameDataInterface {
         _800 = _8 + h,
         _900 = _9 + h;
 
-    String[][][] numberNames = new String[][][]{
+    String[][][] indianNumberNames = new String[][][]{
         {
-            {_0,_1,_2,_3,_4,_5,_6,_7,_8,_9},
-            {_00,_10,_20,_30,_40,_50,_60,_70,_80,_90},
+            {_0,_1, _2,_3,_4,_5,_6,_7,_8,_9},
+            {_00,_10,_20,_30,_40,_50,_60,_70, _80,_90},
             {_000,_100,_200,_300,_400,_500,_600,_700,_800,_900}
         },
         {
             {th,_1+th,_2+th,_3+th,_4+th,_5+th,
             _6+th,_7+th,_8+th,_9+th},
-            {_00,_10,_20,_30,_40,_50,_60,_70,_80,_90},
-            {_000,_100,_200,_300,_400,_500,_600,_700,_800,_900}
+            {_00,_10,_20,_30,_40,_50,_60,_70,_80,_90}
         },
         {
-            {m,_1+m,_2+m,_3+m,_4+m,_5+m,
-            _6+m,_7+m,_8+m,_9+m},
-            {_00, _10,_20,_30,_40,_50,_60,_70,_80,_90},
-            {_000,_100,_200,_300,_400,_500,_600,_700,_800,_900}
+            {l,_1+l,_2+l,_3+l,_4+l,_5+l,
+            _6+l,_7+l,_8+l,_9+l},
+            {_00,_10,_20,_30,_40,_50,_60,_70,_80,_90}
         },
         {
-            {b,_1+b,_2+b,_3+b,_4+b,_5+b,
-            _6+b,_7+b,_8+b,_9+b},
-            {_00,_10,_20,_30,_40,_50,_60,_70,_80,_90},
-            {_000,_100,_200,_300,_400,_500,_600,_700,_800,_900}
+            {c,_1+c,_2+c,_3+c,_4+c,_5+c,
+            _6+c,_7+c,_8+c,_9+c},
+            {_00,_10,_20,_30,_40,_50,_60,_70,_80,_90}
+        },
+        {
+            {a,_1+a,_2+a,_3+a,_4+a,_5+a,
+            _6+a,_7+a,_8+a,_9+a},
+            {_00,_10,_20,_30,_40,_50,_60,_70,_80,_90}
         }
     };
 
+
+    boolean changed = false;
     @Override
     public int stepChange(int step) {
-        return 3;
+        if (step == 1)
+            changed = !changed;
+        return changed ? 2 : 3;
     }
 
     @Override
     public String getZero() {
-        return zero.trim();
+        return zero;
     }
 
     @Override
@@ -143,33 +149,28 @@ public class EnglishNumberName implements NumberNameDataInterface {
     }
 
     @Override
-    public int getInitialGroupDifference() {
-        return 3;
-    }
-
-    @Override
     public String getName(int step, int position, int current_number,
         int[] previous_numbers, int[] next_numbers, Stack<String> names) {
-        if (step == 0 && position == 1 && current_number == 1){
-            int previous_number = previous_numbers[0];
-            //pop the first number anyways
-            names.pop();
-            return switch(previous_number){
-                case 0 -> _10;
-                case 1 -> _11;
-                case 2 -> _12;
-                case 3 -> _13;
-                case 4 -> _14;
-                case 5 -> _15;
-                case 6 -> _16;
-                case 7 -> _17;
-                case 8 -> _18;
-                case 9 -> _19;
-                default -> 
-                    throw new IndexOutOfBoundsException("the flow should never reach this point");
-            };
-        }
-        return numberNames[step][position][current_number];
+            if (step == 0 && position == 1 && current_number == 1){
+                int previous_number = previous_numbers[0];
+                //pop the first number anyways
+                names.pop();
+                return switch(previous_number){
+                    case 0 -> _10;
+                    case 1 -> _11;
+                    case 2 -> _12;
+                    case 3 -> _13;
+                    case 4 -> _14;
+                    case 5 -> _15;
+                    case 6 -> _16;
+                    case 7 -> _17;
+                    case 8 -> _18;
+                    case 9 -> _19;
+                    default -> 
+                        throw new IndexOutOfBoundsException("the flow should never reach this point");
+                };
+            }
+            return indianNumberNames[step][position][current_number];
     }
 
     @Override

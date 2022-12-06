@@ -4,7 +4,6 @@ public interface NumberNameDataInterface {
     int stepChange(int step);
     String getZero();
     String getPointName();
-    int getInitialGroupDifference();
 
     String postProcessing(String name);
 

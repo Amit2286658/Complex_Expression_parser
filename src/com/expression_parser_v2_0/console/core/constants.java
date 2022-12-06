@@ -1,6 +1,6 @@
 package com.expression_parser_v2_0.console.core;
 
-public class constants {
+public class CONSTANTS {
     public static final int
             IOTA_FIRST = 1,
             IOTA_SECOND = 2,
@@ -46,4 +46,8 @@ public class constants {
             FRENCH_NUMBER_SYSTEM = 3,
             ENGLISH_NUMBER_SYSTEM_PLACE_DIFFERENCE = 3,
             INDIAN_NUMBER_SYSTEM_PLACE_DIFFERENCE = 2;
+    public static final int
+            TYPE_VARIABLE = 6,
+            TYPE_ALGEBRAIC_CONSTANT = 7,
+            TYPE_NUMBER = 8;
 }

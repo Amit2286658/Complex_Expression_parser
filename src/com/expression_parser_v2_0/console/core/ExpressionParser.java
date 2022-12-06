@@ -2,7 +2,7 @@ package com.expression_parser_v2_0.console.core;
 
 import static com.expression_parser_v2_0.console.core.Global.*;
 import static com.expression_parser_v2_0.console.core.Utility.convertSetToString;
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 import static com.expression_parser_v2_0.console.core.tokens.*;
 
 //no inheritance.
@@ -42,6 +42,9 @@ public final class ExpressionParser {
             return expression;
         if (expression.length() == 0)
             throw new IllegalArgumentException("given input string is empty");
+        
+        if (tokens.containsToken(expression))
+            throw new ExpressionException("the expression contains tokens that are restricted");
 
         expression = GeneralParser(expression);
         expression = implicitSolver(expression);
@@ -63,7 +66,7 @@ public final class ExpressionParser {
             if (c == '"')
                 isInQuote = !isInQuote;
 
-            if ((c == ' '/*|| handle tab pressing here c == ' '*/) && !isInQuote)
+            if ((Character.isWhitespace(c)) && !isInQuote)
                 continue;
 
             builder.append(c);
@@ -133,11 +136,35 @@ public final class ExpressionParser {
                 }
             }
         }
-        //name replacement
-        for (String str : list){
-            String[] contents = str.split("\\.");
-            expression = expression.replace(contents[0], contents[1]);
+
+        //new replacement block
+        String[] blocks = expression.split(string_token + "");
+        for(int i = 0; i < blocks.length; i += 2){
+            for(String str : list){
+                String[] contents = str.split("\\.");
+                blocks[i] = blocks[i].replace(contents[0], contents[1]);
+            }
         }
+        builder.setLength(0);
+        
+        if (blocks.length == 1)
+            //case when the blocks contains no string, then the size is equals 1
+            builder.append(blocks[0]);
+        else {
+            //in any other condition, a generic logic would follow
+            for (int i = 0; i < blocks.length; i++){
+                builder.append(blocks[i]);
+                builder.append(
+                    i != (blocks.length - 1) ? 
+                        string_token :
+                        expression.charAt(expression.length() - 1) == string_token ?
+                            string_token :
+                            ""
+                );
+            }
+        }
+
+        expression = builder.toString();
 
         //looping in forward direction to check only the post operators.
         //operator identifiers does not exist yet, until I get to the complex converter.
@@ -830,10 +857,22 @@ public final class ExpressionParser {
 
     private String implicitSolver(String expression){
         StringBuilder builder = new StringBuilder();
+        boolean isInString = false;
 
         outer_loop :
         for (int i = 0; i < expression.length(); i++){
             char c = expression.charAt(i);
+
+            if (c == string_token){
+                isInString = !isInString;
+                builder.append(c);
+                continue;
+            }
+
+            if (isInString){
+                builder.append(c);
+                continue;
+            }
 
             char p = 0;
             if (i != 0)
@@ -874,6 +913,7 @@ public final class ExpressionParser {
         //only left operand can have an iota 'i'.
         boolean l = (left + "").matches("[1234567890)i}\"]");
         boolean r = (right + "").matches("[1234567890(@{\"]");
+        
 
         if (l && r){
             switch (opInt.getType()){
@@ -1436,7 +1476,7 @@ public final class ExpressionParser {
 
         if (map[0] == ARGUMENT_ARRAY){
             if (map.length != 2)
-                throw new ExpressionException("the com.expression_parser_v2_0.console.library.functions that expects an array can only accept one type" +
+                throw new ExpressionException("the functions that expects an array can only accept one type" +
                         " of argument, in this case, the map declaration can only have two types," +
                         " the first declaring it an array and the second being the type," +
                         " whose array is being expected");
@@ -1713,6 +1753,26 @@ public final class ExpressionParser {
                     return convertSetToString(parcel.set);
             }
         } else if (item.charAt(0) == string_token){
+            item = item.replace(string_token + "", "");
+            operations.reset();
+            while(operations.loop()){
+                operationsInterface opInt = operations.get();
+                if (opInt.getOperator() == empty_token){
+                    opInt.function(item);
+                    int result_flag = opInt.getResultFlag();
+                    switch(result_flag){
+                        case RESULT_REAL -> {
+                            return opInt.getReal() + "";
+                        }
+                        case RESULT_STRING -> {
+                            return opInt.getString();
+                        }
+                        default -> {
+                            return item;
+                        }
+                    }
+                }
+            }
             return item;
         } else if (item.equals("}")){
             Set set = setGiver(result);

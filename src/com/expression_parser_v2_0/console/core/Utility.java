@@ -1,6 +1,6 @@
 package com.expression_parser_v2_0.console.core;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 
 public class Utility {
     //when true, the entered angle will be converted into the radians since

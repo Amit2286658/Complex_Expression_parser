@@ -1,9 +1,10 @@
-package com.expression_parser_v2_0.console.library.operations;
+package com.expression_parser_v2_0.console.library.arithmetic_operations;
 
 import com.expression_parser_v2_0.console.core.ComplexNumber;
+import com.expression_parser_v2_0.console.core.NumberName;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
-import static com.expression_parser_v2_0.console.core.constants.*;
+import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 
 public class Sqrt extends Operations_Implementation {
 
@@ -13,8 +14,8 @@ public class Sqrt extends Operations_Implementation {
 
     ComplexNumber complexResult;
 
-    public Sqrt(){
-        super();
+    public Sqrt(NumberName numberName) {
+        super(numberName);
     }
 
     @Override
