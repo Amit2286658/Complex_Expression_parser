@@ -33,7 +33,7 @@ public final class ExpressionParser {
             this.operations = operations;
             this.functions = functions;
         }else 
-            throw new ExpressionException("method is invalid for this insatnce");
+            throw new ExpressionException("method is invalid for this instance");
     }
 
     public String Evaluate(String expression){
@@ -148,7 +148,7 @@ public final class ExpressionParser {
         builder.setLength(0);
         
         if (blocks.length == 1)
-            //case when the blocks contains no string, then the size is equals 1
+            //case when the block contain no string, then the size is equals 1
             builder.append(blocks[0]);
         else {
             //in any other condition, a generic logic would follow
@@ -158,8 +158,7 @@ public final class ExpressionParser {
                     i != (blocks.length - 1) ? 
                         string_token :
                         expression.charAt(expression.length() - 1) == string_token ?
-                            string_token :
-                            ""
+                            string_token : ""
                 );
             }
         }
@@ -1784,27 +1783,66 @@ public final class ExpressionParser {
 
         if (isComplex) {
             if (cn.real != 0 && cn.iota == 0) {
-                if (cn.real % 1 == 0)
-                    return String.valueOf((int) cn.real);
+                if (cn.real % 1 == 0){
+                    //split is always guaranteed
+                    String[] parts = (cn.real + "").split("\\.");
+                    for(char c : parts[1].toCharArray()){
+                        if (c != '0'){
+                            return cn.real + "";
+                        }
+                    }
+                    return parts[0];
+                }
                 else
-                    return String.valueOf(cn.real);
+                    return cn.real + "";
             } else if (cn.real == 0 && cn.iota != 0) {
-                if (cn.iota % 1 == 0)
-                    return (int) cn.iota + "i";
+                if (cn.iota % 1 == 0){
+                    String[] parts = (cn.iota + "").split("\\.");
+                    for(char c : parts[1].toCharArray()){
+                        if (c != '0'){
+                            return cn.iota + "i";
+                        }
+                    }
+                    return parts[0] + "i";
+                }
                 else
                     return cn.iota + "i";
             } else if (cn.real == 0) {
                 return "0";
             } else {
                 String builder = "";
-                if (cn.real % 1 == 0)
-                    builder += (cn.real + "").split("\\.")[0];
+                if (cn.real % 1 == 0){
+                    String[] parts = (cn.real + "").split("\\.");
+                    boolean empty_decimals = true;
+                    for(char c : parts[1].toCharArray()){
+                        if (c != '0'){
+                            empty_decimals = false;
+                            break;
+                        }
+                    }
+                    if (empty_decimals)
+                        builder += parts[0];
+                    else
+                        builder += cn.real;
+                }
                 else
                     builder += cn.real;
                 if (cn.iota > 0)
                     builder += "+";
-                if (cn.iota % 1 == 0)
-                    builder += (cn.iota + "").split("\\.")[0] + "i";
+                if (cn.iota % 1 == 0){
+                    String[] parts = (cn.iota + "").split("\\.");
+                    boolean empty_decimals = true;
+                    for(char c : parts[1].toCharArray()){
+                        if (c != '0'){
+                            empty_decimals = false;
+                            break;
+                        }
+                    }
+                    if (empty_decimals)
+                        builder += parts[0] + "i";
+                    else
+                        builder += cn.iota + "i";
+                }
                 else
                     builder += cn.iota + "i";
                 return builder;
