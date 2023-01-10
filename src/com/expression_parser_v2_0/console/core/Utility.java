@@ -1,6 +1,7 @@
 package com.expression_parser_v2_0.console.core;
 
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
+import static com.expression_parser_v2_0.console.core.tokens.complex_token;
 
 public class Utility {
     //when true, the entered angle will be converted into the radians since
@@ -42,33 +43,46 @@ public class Utility {
 
         while(set.hasNext(ELEMENT_REAL)) {
             double real = set.pullReal();
-            if (real % 1 == 0)
-                builder.append((real + "").split("\\.")[0]).append(',');
-            else
+            if (real % 1 == 0){
+                String[] parts = (real + "").split("\\.");
+                    boolean empty_decimals = true;
+                    for(char c : parts[1].toCharArray()){
+                        if (c != '0'){
+                            empty_decimals = false;
+                            break;
+                        }
+                    }
+                    if (empty_decimals)
+                        builder.append(parts[0]).append(',');
+                    else
+                        builder.append(real).append(',');
+            }else
                 builder.append(real).append(',');
         }
 
         while(set.hasNext(ELEMENT_IOTA)) {
             double iota = set.pullIota();
-            if (iota % 1 == 0)
-                builder.append((iota + "").split("\\.")[0]).append("i");
-            else
+            if (iota % 1 == 0){
+                String[] parts = (iota + "").split("\\.");
+                    boolean empty_decimals = true;
+                    for(char c : parts[1].toCharArray()){
+                        if (c != '0'){
+                            empty_decimals = false;
+                            break;
+                        }
+                    }
+                    if (empty_decimals)
+                        builder.append(parts[0]).append('i');
+                    else
+                        builder.append(iota).append('i');
+            }else
                 builder.append(iota).append("i");
             builder.append(',');
         }
 
         while(set.hasNext(ELEMENT_COMPLEX)) {
             ComplexNumber cn = set.pullComplex();
-            if (cn.real % 1 == 0)
-                builder.append((cn.real + "").split("\\.")[0]);
-            else
-                builder.append(cn.real);
-            if (cn.iota > 0)
-                builder.append("+");
-            if (cn.iota % 1 == 0)
-                builder.append((cn.iota + "").split("\\.")[0]).append("i");
-            else
-                builder.append(cn.iota).append("i");
+            builder.append(convertComplexToString(cn, false));
             builder.append(',');
         }
 
@@ -86,5 +100,42 @@ public class Utility {
         if (firstIteration)
             builder.append('}');
         return builder.toString();
+    }
+
+    public static String convertComplexToString(ComplexNumber cn, boolean c_t){
+        return (c_t ? complex_token : "") + "" + cn.real +
+                (cn.iota >= 0 ? "+" : "") + cn.iota + "i" + (c_t ? complex_token : "");
+    }
+
+    public static ComplexNumber convertToComplexNumber(String complexString){
+        ComplexNumber number = new ComplexNumber();
+        StringBuilder currentStep = new StringBuilder();
+
+        for (int i = 0; i < complexString.length(); i++){
+            char c = complexString.charAt(i);
+            if (c == '+' || c == '-') {
+                if (i != 0) {
+                    number.real = Double.parseDouble(currentStep.toString());
+                    currentStep.setLength(0);
+                }
+            }
+            currentStep.append(c);
+        }
+        number.iota = Double.parseDouble(currentStep.toString().replaceAll("i", ""));
+
+        return number;
+    }
+
+    public static ComplexNumber convertToComplexNumber(double value, boolean iota){
+        return new ComplexNumber(!iota ? value : 0, iota ? value : 0);
+    }
+
+    public static String convertToComplexString(double value, boolean iota){
+        return complex_token + (!iota ? value + "+" + 0 + "i" : 0 + (value < 0 ? "" : "+")
+                + value + "i") + complex_token;
+    }
+
+    public static String convertComplexToString(ComplexNumber cn){
+        return convertComplexToString(cn, true);
     }
 }

@@ -1,7 +1,7 @@
 package com.expression_parser_v2_0.console.core;
 
 import static com.expression_parser_v2_0.console.core.Global.*;
-import static com.expression_parser_v2_0.console.core.Utility.convertSetToString;
+import static com.expression_parser_v2_0.console.core.Utility.*;
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 import static com.expression_parser_v2_0.console.core.tokens.*;
 
@@ -77,22 +77,39 @@ public final class ExpressionParser {
         //I have to find a better approach for god's sake.
         expression = expression.replaceAll("\\)\\(", ")*(");
         expression = expression.replaceAll("}\\{", "}*{");
-        expression = expression.replaceAll("\"\"", "\"*\"");
+        //expression = expression.replaceAll("\"\"", "\"*\"");
         expression = expression.replaceAll("\\+\\+", "\\+");
         expression = expression.replaceAll("\\+-", "-");
         expression = expression.replaceAll("-\\+", "-");
         expression = expression.replaceAll("--", "\\+");
         expression = expression.replaceAll("i\\(", "i*(");
         expression = expression.replaceAll("i\\{", "i*{");
-        expression = expression.replaceAll("i\"", "i*\"");
+        //expression = expression.replaceAll("i\"", "i*\"");
         expression = expression.replaceAll("\\)\\{", ")*{");
         expression = expression.replaceAll("}\\(", "}*(");
-        expression = expression.replaceAll("\\)\"", ")*\"");
-        expression = expression.replaceAll("\"\\(", "\"*(");
-        expression = expression.replaceAll("}\"", "}*\"");
-        expression = expression.replaceAll("\"\\{", "\"*{");
+        //expression = expression.replaceAll("\\)\"", ")*\"");
+        //expression = expression.replaceAll("\"\\(", "\"*(");
+        //expression = expression.replaceAll("}\"", "}*\"");
+        //expression = expression.replaceAll("\"\\{", "\"*{");
 
+        /*now there is a bug, take this for example AP_nFirst
+        here the AP_nFirst is a function, the AP is function too
+        it causes double function token to be inserted, it obviously is a problem
+        so now, there are two approaches I can take
+        first -> run a char by char loop and do every match manually
+        this approach is very tiresome, may lead to performance drop, I don't know
+        in this approach I'll just check if a function token already exists, if it does then
+        I'll skip, for this I'll also have to sort the functions names by their size, in descending order
 
+        the second approach ->  in this approach, I'll leave it the way it is,
+        and at the end of the operation, I can simply check if there are consecutive
+        function token, it would indicate the problem and I then can get rid of the excessive
+        tokens leaving only one behind. and the good thing is
+        I don't even need to sort the function names for this approach to work.
+        so, let's give it a try.
+        it worked, 2nd approach worked like a charm.
+        */
+        String[] strs = expression.split(string_token + "");
         Stack<String> fn_names = new Stack<>();
         functions.reset();
         while (functions.loop()){
@@ -100,11 +117,48 @@ public final class ExpressionParser {
             String[] name = fnInt.getFunctionNames();
             for(String nm : name){
                 if (!fn_names.contains(nm)){
-                    expression = expression.replace(nm, function_token + nm);
+                    for(int k = 0; k < strs.length; k += 2){
+                        strs[k] = strs[k].replace(nm, function_token + nm);
+                    }
                     fn_names.push(nm);
                 }
             }
         }
+        if(strs.length == 1)
+            expression = strs[0];
+        else {
+            builder.setLength(0);
+            for (int i = 0; i < strs.length; i++){
+                builder.append(strs[i]);
+                builder.append(
+                    i != (strs.length - 1) ? 
+                        string_token :
+                        expression.charAt(expression.length() - 1) == string_token ?
+                            string_token : ""
+                );
+            }
+            expression = builder.toString();
+        }
+
+        //approach 2, check for the consecutive function tokens
+        builder.setLength(0);
+        boolean fun_token_found = false;
+        for(int i = 0; i < expression.length(); i++){
+            char c = expression.charAt(i);
+            if (c == function_token && fun_token_found)
+                //consecutive found, skip this step
+                continue;
+            else if (c == function_token){
+                builder.append(c);
+                fun_token_found = true;
+                continue;
+            }else {
+                if (fun_token_found)
+                    fun_token_found = false;
+                builder.append(c);
+            }
+        }
+        expression = builder.toString();
 
         //create name array
         builder.setLength(0);
@@ -163,6 +217,59 @@ public final class ExpressionParser {
             }
         }
 
+        expression = builder.toString();
+
+        //bracket insertion for the function negation, this is the best place to do it
+        //because the function token already exists by now and there are no
+        //unnecessary clutter, doing this after the function
+        //is converted into postfix would be impossible
+        builder.setLength(0);
+        boolean function_negation = false;
+        int bracket_counter = 0;
+        for(int i = 0; i < expression.length(); i++){
+            char c = expression.charAt(i);
+            if ((c + "").matches("[-+]") && !function_negation){
+                //if i == 0, which means the first char is either a plus or a minus
+                //this case is handled by complexConverter
+                //I can ignore this one particular case
+                if (i == 0){
+                    builder.append(c);
+                    continue;
+                }else {
+                    //p will always be greater than 0 here
+                    char p = expression.charAt(i - 1);
+                    char a = i != expression.length() - 1 ? expression.charAt(i + 1) : 0;
+                    if (a == function_token){
+                        //also look behind, for example if the expression is something like
+                        //1 - sin(90) or 2 times (-sin(90)), there's no need for any bracket
+                        //but if the expression is like Sqrt - sin(90), it needs bracket insertion
+                        operationsInterface ops = getCharAsAnOperator(p);
+                        if (ops != null && 
+                            (ops.getType() == TYPE_BOTH || ops.getType() == TYPE_POST)){
+                                builder.append('(');
+                                builder.append('0');
+                                builder.append(c);
+                                function_negation = true;
+                                continue;
+                        }
+                    }
+                    builder.append(c);
+                }
+            }else if (function_negation){
+                builder.append(c);
+                if (c == '(' || c == '{')
+                    bracket_counter++;
+                else if (c == ')' || c == '}'){
+                    bracket_counter--;
+                    if (bracket_counter == 0){
+                        function_negation = false;
+                        builder.append(')');
+                        continue;
+                    }
+                }
+            }else 
+                builder.append(c);
+        }
         expression = builder.toString();
 
         //looping in forward direction to check only the post operators.
@@ -251,6 +358,9 @@ public final class ExpressionParser {
 
         int stringCounter = 0;
 
+        boolean negation_bracket_insert = false;
+        int negation_bracket_insert_counter = 0;
+
         outer_loop :
         for (int i = 0; i < expression.length(); i++){
             String c = String.valueOf(expression.charAt(i));
@@ -265,6 +375,30 @@ public final class ExpressionParser {
             if (stringCounter > 0){
                 builder.append(c);
                 continue;
+            }
+            if (negation_bracket_insert){
+                if (c.matches("[({]"))
+                    negation_bracket_insert_counter++;
+                else if (c.matches("[)}]")){
+                    negation_bracket_insert_counter--;
+                    if (negation_bracket_insert_counter == 0){
+                        if (!currentStep.toString().equals("")){
+                            //noinspection DuplicateExpressions
+                            double value = Double.parseDouble(currentStep.toString().
+                                    replaceAll("i", ""));
+                            if (currentStep.toString().contains("i")){
+                                builder.append(convertToComplexString(value, true));
+                            }else{
+                                builder.append(convertToComplexString(value, false));
+                            }
+                            currentStep.setLength(0);
+                        }
+                        builder.append(c);
+                        builder.append(")");
+                        negation_bracket_insert = false;
+                        continue outer_loop;
+                    }
+                }
             }
             if (c.matches("[1234567890.iIeE]")){
                 char p = 0;
@@ -297,41 +431,59 @@ public final class ExpressionParser {
                     if (i != expression.length() - 1)
                         a = expression.charAt(i + 1);
 
-                    if (i == 0){
+                    if (i == 0 || p == '(' || p == '{' || p == ','){
                         builder.append(convertComplexToString(new ComplexNumber())).append(c);
                         continue;
                     }
-                    if (p == '(' || p == '{'){
-                        //a negation or the reverse of it, whatever may it be called.
-                        /*if a negative operator is found, that means the intention is negation
-                        Otherwise, the intention is to leave the term as it is,
-                        I'm going with the option to just let the implementation handle
-                        the both cases.*/
+                    // if (p == '(' || p == '{'){
+                    //     //a negation or the reverse of it, whatever may it be called.
+                    //     /*if a negative operator is found, that means the intention is negation
+                    //     Otherwise, the intention is to leave the term as it is,
+                    //     I'm going with the option to just let the implementation handle
+                    //     the both cases.*/
+                    //     if (a == '(' || a == '{'){
+                    //         builder.append(convertComplexToString(new ComplexNumber()));
+                    //         builder.append(c);
+                    //     } else {
+                    //         currentStep.append(c);
+                    //     }
+                    //     continue;
+                    // }
+
+                    operationsInterface ops = getCharAsAnOperator(p);
+                    if (ops != null && (ops.getType() == TYPE_POST || ops.getType() == TYPE_BOTH)){
                         if (a == '(' || a == '{'){
-                            builder.append(convertComplexToString(new ComplexNumber()));
+                            builder.append('(');
+                            builder.append(convertComplexToString(
+                                new ComplexNumber()
+                            ));
                             builder.append(c);
-                        } else {
+                            negation_bracket_insert = true;
+                        }else {
                             currentStep.append(c);
                         }
-                        continue;
+                        continue outer_loop;
                     }
-
-                    operations.reset();
-                    while(operations.loop()){
-                        operationsInterface opInt = operations.get();
-                        if (opInt.getOperator() == p){
-                            if (opInt.getType() == TYPE_POST || opInt.getType() == TYPE_BOTH){
-                                if (a == '(' || a == '{'){
-                                    builder.append(convertComplexToString(
-                                            new ComplexNumber())).append(c);
-                                } else {
-                                    currentStep.append(c);
-                                }
-                                continue outer_loop;
-                            }
-                            break;
-                        }
-                    }
+                    // operations.reset();
+                    // while(operations.loop()){
+                    //     operationsInterface opInt = operations.get();
+                    //     if (opInt.getOperator() == p){
+                    //         if (opInt.getType() == TYPE_POST || opInt.getType() == TYPE_BOTH){
+                    //             if (a == '(' || a == '{'){
+                    //                 builder.append('(');
+                    //                 builder.append(convertComplexToString(
+                    //                     new ComplexNumber()
+                    //                 ));
+                    //                 builder.append(c);
+                    //                 negation_bracket_insert = true;
+                    //             }else {
+                    //                 currentStep.append(c);
+                    //             }
+                    //             continue outer_loop;
+                    //         }
+                    //         break;
+                    //     }
+                    // }
                     builder.append(c);
                     continue;
                 }
@@ -477,7 +629,6 @@ public final class ExpressionParser {
         while(output.loop()){
             builder.append(output.get()).append(",");
         }
-
         System.out.println("post fix string => " + builder);
         return output;
     }
@@ -710,6 +861,15 @@ public final class ExpressionParser {
     private String functionHandler(String expression){
         expression = functionUpdater(expression);
 
+        //so the way it works is that the general parser adds the token for the updater
+        //so that updater will know which are the functions
+        //the updater is a recursive function and needs the token to be destroyed
+        //this is because the updater only goes through the top layer and then recurse into nested layers
+        //the nested layers are the functions that are within brackets
+        //after the updater returns, the expression no longer has any function token
+        //that's why it needs to be added again which is done down here.
+        StringBuilder builder = new StringBuilder();
+        String[] strs = expression.split(string_token + "");
         Stack<String> fn_names = new Stack<>();
         functions.reset();
         while (functions.loop()){
@@ -717,12 +877,63 @@ public final class ExpressionParser {
             String[] name = fnInt.getFunctionNames();
             for(String nm : name){
                 if (!fn_names.contains(nm)){
-                    expression = expression.replace(nm, function_token + nm);
+                    for(int k = 0; k < strs.length; k += 2){
+                        strs[k] = strs[k].replace(nm, function_token + nm);
+                    }
                     fn_names.push(nm);
                 }
             }
-
         }
+        if(strs.length == 1)
+            expression = strs[0];
+        else {
+            builder.setLength(0);
+            for (int i = 0; i < strs.length; i++){
+                builder.append(strs[i]);
+                builder.append(
+                    i != (strs.length - 1) ? 
+                        string_token :
+                        expression.charAt(expression.length() - 1) == string_token ?
+                            string_token : ""
+                );
+            }
+            expression = builder.toString();
+        }
+
+        builder.setLength(0);
+        boolean fun_token_found = false;
+        for(int i = 0; i < expression.length(); i++){
+            char c = expression.charAt(i);
+            if (c == function_token && fun_token_found)
+                //consecutive found, skip this step
+                continue;
+            else if (c == function_token){
+                builder.append(c);
+                fun_token_found = true;
+                continue;
+            }else {
+                if (fun_token_found)
+                    fun_token_found = false;
+                builder.append(c);
+            }
+        }
+        expression = builder.toString();
+        //why though, I'll need to do some test to see what this section actually does.
+        // System.out.println("before this section -> "+expression);
+        // Stack<String> fn_names = new Stack<>();
+        // functions.reset();
+        // while (functions.loop()){
+        //     functionsInterface fnInt = functions.get();
+        //     String[] name = fnInt.getFunctionNames();
+        //     for(String nm : name){
+        //         if (!fn_names.contains(nm)){
+        //             expression = expression.replace(nm, function_token + nm);
+        //             fn_names.push(nm);
+        //         }
+        //     }
+
+        // }
+        // System.out.println("after this section -> "+expression);
         return expression;
     }
 
@@ -740,8 +951,19 @@ public final class ExpressionParser {
 
         for (int i = 0; i < expression.length(); i++){
             char c = expression.charAt(i);
+            if (c == '"'){
+                isInString = !isInString;
+                builder.append(c);
+                continue;
+            }
+            if (isInString){
+                builder.append(c);
+                continue;
+            }
             if (c == function_token && bracket_counter == 0){
                 isInFunction = true;
+                if(isInSet)
+                    isInSet = false;
                 continue;
             }else if (isInFunction){
                 if (expression.charAt(i + 1) == '('){
@@ -749,13 +971,13 @@ public final class ExpressionParser {
                     param_scan = true;
                 }
             }
-            if (c == '"'){
-                isInString = !isInString;
-            }else if (c == '{'){
+            if (c == '{'){
                 isInSet = true;
                 setCount++;
             }else if (c == '}'){
-                isInSet = --setCount != 0;
+                setCount--;
+                if (setCount == 0)
+                    isInSet = false;
             }
             builder.append(c);
             if (param_scan){
@@ -769,7 +991,7 @@ public final class ExpressionParser {
                         param_count = 0;
                     }
                 }
-                else if (c ==',' && bracket_counter == 1 && !isInSet && !isInString)
+                else if (c == ',' && bracket_counter == 1 && !isInSet)
                     param_count++;
             }
 
@@ -847,6 +1069,8 @@ public final class ExpressionParser {
                     set.pushReal(cn.real);
                 else if (cn.iota != 0)
                     set.pushIota(cn.iota);
+                else 
+                    set.pushComplex(cn);
             } catch (Exception e) {
                 throw new IllegalArgumentException(e.getMessage());
             }
@@ -880,14 +1104,19 @@ public final class ExpressionParser {
             if (i != expression.length() - 1)
                 a = expression.charAt(i + 1);
 
-            operations.reset();
-            while (operations.loop()){
-                operationsInterface opInt = operations.get();
-                if (opInt.getOperator() == c) {
-                    builder.append(getImplicitExp(opInt, p, a));
-                    continue outer_loop;
-                }
+            operationsInterface ops = getCharAsAnOperator(c);
+            if(ops != null){
+                builder.append(getImplicitExp(ops, p, a));
+                continue outer_loop;
             }
+            // operations.reset();
+            // while (operations.loop()){
+            //     operationsInterface opInt = operations.get();
+            //     if (opInt.getOperator() == c) {
+            //         builder.append(getImplicitExp(opInt, p, a));
+            //         continue outer_loop;
+            //     }
+            // }
             builder.append(c);
         }
         return builder.toString();
@@ -906,6 +1135,7 @@ public final class ExpressionParser {
         }
     }
 
+    //todo : string messages are outdated, need to update it.
     private String getImplicitExp(operationsInterface opInt, char left, char right){
         //no need to check for either a dot '.', or exponent ';', in each case,
         //they must end with a number, or else they'll be invalid.
@@ -1108,6 +1338,10 @@ public final class ExpressionParser {
                 switch(opInt.getType()){
                     case TYPE_BOTH :
                     case TYPE_PRE :
+                        //there isn't much to do with either a plus or a minus operator
+                        //in case a situation arises in the future, update this function as needed.
+                        if (opInt.getOperator() == '+' || opInt.getOperator() == '-')
+                            return opInt.getOperator() + "";
                         throw new ExpressionException("the operator has type pre or both but no left operand found");
                     case TYPE_POST :
                         switch(right_operator.getType()){
@@ -1721,6 +1955,8 @@ public final class ExpressionParser {
         }
     }
 
+    //sometimes in these comments I feel like I'm talking to myself.
+
     private operationsInterface getCharAsAnOperator(char c){
         operationsInterface opInt = null;
         operations.reset();
@@ -1753,25 +1989,42 @@ public final class ExpressionParser {
             }
         } else if (item.charAt(0) == string_token){
             item = item.replace(string_token + "", "");
-            operations.reset();
-            while(operations.loop()){
-                operationsInterface opInt = operations.get();
-                if (opInt.getOperator() == empty_token){
-                    opInt.function(item);
-                    int result_flag = opInt.getResultFlag();
-                    switch(result_flag){
-                        case RESULT_REAL -> {
-                            return opInt.getReal() + "";
-                        }
-                        case RESULT_STRING -> {
-                            return opInt.getString();
-                        }
-                        default -> {
-                            return item;
-                        }
+
+            operationsInterface ops = getCharAsAnOperator(empty_token);
+            if (ops != null){
+                ops.function(item);
+                int result_flag = ops.getResultFlag();
+                switch(result_flag){
+                    case RESULT_REAL -> {
+                        return ops.getReal() + "";
+                    }
+                    case RESULT_STRING -> {
+                        return ops.getString();
+                    }
+                    default -> {
+                        return item;
                     }
                 }
             }
+            // operations.reset();
+            // while(operations.loop()){
+            //     operationsInterface opInt = operations.get();
+            //     if (opInt.getOperator() == empty_token){
+            //         opInt.function(item);
+            //         int result_flag = opInt.getResultFlag();
+            //         switch(result_flag){
+            //             case RESULT_REAL -> {
+            //                 return opInt.getReal() + "";
+            //             }
+            //             case RESULT_STRING -> {
+            //                 return opInt.getString();
+            //             }
+            //             default -> {
+            //                 return item;
+            //             }
+            //         }
+            //     }
+            // }
             return item;
         } else if (item.equals("}")){
             Set set = setGiver(result);
@@ -1860,43 +2113,6 @@ public final class ExpressionParser {
             else if (str.equals("}"))
                 stack.replace("{");
         }
-    }
-
-    private ComplexNumber convertToComplexNumber(String complexString){
-        ComplexNumber number = new ComplexNumber();
-        StringBuilder currentStep = new StringBuilder();
-
-        for (int i = 0; i < complexString.length(); i++){
-            char c = complexString.charAt(i);
-            if (c == '+' || c == '-') {
-                if (i != 0) {
-                    number.real = Double.parseDouble(currentStep.toString());
-                    currentStep.setLength(0);
-                }
-            }
-            currentStep.append(c);
-        }
-        number.iota = Double.parseDouble(currentStep.toString().replaceAll("i", ""));
-
-        return number;
-    }
-
-    private static ComplexNumber convertToComplexNumber(double value, boolean iota){
-        return new ComplexNumber(!iota ? value : 0, iota ? value : 0);
-    }
-
-    private static String convertToComplexString(double value, boolean iota){
-        return complex_token + (!iota ? value + "+" + 0 + "i" : 0 + (value < 0 ? "" : "+")
-                + value + "i") + complex_token;
-    }
-
-    private static String convertComplexToString(ComplexNumber cn){
-        return convertComplexToString(cn, true);
-    }
-
-    private static String convertComplexToString(ComplexNumber cn, @SuppressWarnings("SameParameterValue") boolean c_t){
-        return (c_t ? complex_token : "") + "" + cn.real +
-                (cn.iota >= 0 ? "+" : "") + cn.iota + "i" + (c_t ? complex_token : "");
     }
 
     private static final class DispatchParcel {

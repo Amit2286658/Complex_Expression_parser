@@ -23,9 +23,8 @@ public class Expression {
 
     public Expression(){
         numberName.setCurrentNumberNameSystem(englishInterface);
-
-        featuresEnable();
         parser.enableGlobal();
+        featuresEnable();
     }
     public ExpressionParser getExpressionParser(){
         return parser;
@@ -61,5 +60,11 @@ public class Expression {
         new euler_constant();
         new equal_to();
         new Empty(numberName);
+        new arithmetic_sequence_1(numberName);
+        new arithmetic_sequence_2(numberName);
+        new arithmetic_sequence_3(numberName);
+        new geometric_sequence_1(numberName);
+        new geometric_sequence_2(numberName);
+        new fun_1(numberName);
     }
 }
