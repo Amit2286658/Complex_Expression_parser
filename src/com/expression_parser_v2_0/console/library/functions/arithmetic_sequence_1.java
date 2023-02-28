@@ -1,10 +1,9 @@
 package com.expression_parser_v2_0.console.library.functions;
 
 import com.expression_parser_v2_0.console.core.NumberName;
+import com.expression_parser_v2_0.console.core.types.Argument;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
-
-import com.expression_parser_v2_0.console.core.Argument;
 
 public class arithmetic_sequence_1 extends Functions_Implementation{
 
@@ -22,7 +21,7 @@ public class arithmetic_sequence_1 extends Functions_Implementation{
 
     @Override
     public int[] getFunctionMap() {
-        return new int[]{ARGUMENT_REAL, ARGUMENT_REAL, ARGUMENT_REAL};
+        return new int[]{REAL, REAL, REAL};
     }
 
     @Override
@@ -49,6 +48,6 @@ public class arithmetic_sequence_1 extends Functions_Implementation{
         float n = (float) (((last_term - first_term)/difference) + 1);
 
         real_result = n/2 * (last_term + first_term);
-        result_flag = RESULT_REAL;
+        result_flag = REAL;
     }
 }

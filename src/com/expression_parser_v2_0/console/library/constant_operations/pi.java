@@ -23,12 +23,12 @@ public class pi extends Operations_Implementation {
 
     @Override
     public char getOperator() {
-        return 'ᴨ';
+        return 'π';
     }
 
     @Override
     public int getResultFlag() {
-        return RESULT_REAL;
+        return REAL;
     }
 
     @Override

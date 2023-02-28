@@ -14,15 +14,15 @@ public final class Stack<T> {
     //for iteration but no actual data modification.
     private int pseudo_counter = -1;
 
-    Stack(int size) {
+    public Stack(int size) {
         items = new Object[size];
     }
 
-    Stack(){
+    public Stack(){
         this(10);
     }
 
-    void push(T item){
+    public void push(T item){
         //increment the pointer
         pointer++;
 
@@ -40,18 +40,17 @@ public final class Stack<T> {
         items[pointer] = item;
     }
 
-    void resetToCount(){
+    public void resetToCheckpoint(){
         pointer += (last_point - pointer);
         last_point = 0;
     }
 
-    void keepCount(){
+    public void checkpoint(){
         last_point = pointer;
     }
 
     @SuppressWarnings("unchecked")
-    public
-    T pop(){
+    public T pop(){
         if (pointer < 0)
             throw new IndexOutOfBoundsException("pointer is out of bounds");
 
@@ -67,14 +66,15 @@ public final class Stack<T> {
         return item;
     }
 
-    T peek(){
+    @SuppressWarnings("unchecked")
+    public T peek(){
         if (pointer >= 0)
             //noinspection unchecked
             return (T) items[pointer];
         throw new IndexOutOfBoundsException("pointer is out of bounds");
     }
 
-    boolean hasNext(){
+    public boolean hasNext(){
         //pointer is only incremented when an item is pushed onto the stack, therefore providing
         //null safety by default, meaning wherever the pointer is located, it's guaranteed to be occupied,
         //by a certain object.
@@ -82,7 +82,7 @@ public final class Stack<T> {
     }
 
     //no pointer modification.
-    boolean contains(T item){
+    public boolean contains(T item){
         for(Object op : items){
             if (op != null && op.equals(item)){
                 return true;
@@ -91,27 +91,28 @@ public final class Stack<T> {
         return false;
     }
 
-    boolean isEmpty(){
+    public boolean isEmpty(){
         return pointer == -1;
     }
 
-    int getLength(){
+    public int getLength(){
         return pointer + 1;
     }
 
-    int getRawLength(){
+    public int getRawLength(){
         return items.length;
     }
 
-    int getFreeLength(){
+    public int getFreeLength(){
         return items.length - (pointer + 1);
     }
 
-    int getPointerLocation() {
+    public int getPointerLocation() {
         return pointer;
     }
 
-    Stack<T> newClone(){
+    @SuppressWarnings("unchecked")
+    public Stack<T> newClone(){
         Stack<T> stack = new Stack<>(getLength());
         for(int i = 0; i < getLength(); i++){
             //noinspection unchecked
@@ -120,7 +121,7 @@ public final class Stack<T> {
         return stack;
     }
 
-    Stack<T> reverse() {
+    public Stack<T> reverse() {
         Stack<T> temp = new Stack<>();
         while(hasNext()){
             temp.push(pop());
@@ -129,12 +130,12 @@ public final class Stack<T> {
     }
 
     //iteration purpose com.expression_parser_v2_0.console.library.functions.
-    boolean loop(){
+    public boolean loop(){
         return pseudo_counter >= 0;
     }
 
     @SuppressWarnings("unchecked")
-    T get(){
+    public T get(){
         T item = (T) items[pseudo_counter];
         pseudo_counter--;
         return item;
@@ -143,17 +144,17 @@ public final class Stack<T> {
     //call it only after having a call made to the "get" function, which is the most natural approach,
     //doing so otherwise will lead to unexpected results, not necessarily an exception,
     //but a completely messed up stack.
-    void replace(T item){
+    public void replaceInLoop(T item){
         items[pseudo_counter + 1] = item;
     }
 
-    void reset(){
+    public void resetLoopAtPointer(){
         pseudo_counter = pointer;
     }
 
     public ArrayList<T> getAsList(){
         ArrayList<T> list = new ArrayList<>();
-        reset();
+        resetLoopAtPointer();
         while(loop()){
             list.add(get());
         }

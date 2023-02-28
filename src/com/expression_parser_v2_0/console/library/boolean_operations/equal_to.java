@@ -39,7 +39,7 @@ public class equal_to extends Operations_Implementation {
 
     @Override
     public int getResultFlag() {
-        return RESULT_REAL;
+        return REAL;
     }
 
     @Override

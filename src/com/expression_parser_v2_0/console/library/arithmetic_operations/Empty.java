@@ -45,10 +45,10 @@ public class Empty extends Operations_Implementation {
     public void function(String str) {
         try {
             double result = myNumberName.convertNameToNumber(str);
-            result_flag = RESULT_REAL;
+            result_flag = REAL;
             real_result = result;
         }catch (Exception e){
-            result_flag = RESULT_STRING;
+            result_flag = STRING;
             string_result = str;
         }
     }

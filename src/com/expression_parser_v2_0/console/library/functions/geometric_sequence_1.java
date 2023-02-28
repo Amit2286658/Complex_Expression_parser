@@ -1,10 +1,9 @@
 package com.expression_parser_v2_0.console.library.functions;
 
 import com.expression_parser_v2_0.console.core.NumberName;
+import com.expression_parser_v2_0.console.core.types.Argument;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
-
-import com.expression_parser_v2_0.console.core.Argument;
 
 public class geometric_sequence_1 extends Functions_Implementation{
     int result_flag;
@@ -21,7 +20,7 @@ public class geometric_sequence_1 extends Functions_Implementation{
 
     @Override
     public int[] getFunctionMap() {
-        return new int[]{ARGUMENT_ARRAY, ARGUMENT_REAL};
+        return new int[]{ARRAY, REAL};
     }
 
     @Override
@@ -46,6 +45,6 @@ public class geometric_sequence_1 extends Functions_Implementation{
         double difference = arguments[1].getRealArgument() / arguments[0].getRealArgument();
 
         real_result = first_term * (1 - Math.pow(difference, n)) / (1 - difference);
-        result_flag = RESULT_REAL;
+        result_flag = REAL;
     }
 }

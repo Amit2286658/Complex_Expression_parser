@@ -19,7 +19,7 @@ public class Global {
             operations.push(opInt);
             return;
         }
-        operations.reset();
+        operations.resetLoopAtPointer();
         while(operations.loop()){
             operationsInterface op = operations.get();
             if (op.getOperator() == opInt.getOperator()){
@@ -27,7 +27,7 @@ public class Global {
                     throw new ExpressionException("An operation already exists, " +
                             "with the same operator : " + op.getOperator());
                 }else{
-                    operations.replace(opInt);
+                    operations.replaceInLoop(opInt);
                     return;
                 }
             }
@@ -45,7 +45,7 @@ public class Global {
             functions.push(fs);
             return;
         }
-        functions.reset();
+        functions.resetLoopAtPointer();
         outer_loop :
         while(functions.loop()){
             functionsInterface fsInt = functions.get();
@@ -77,7 +77,7 @@ public class Global {
                         throw new ExpressionException("A function with the same name : " +
                                 fs.getFunctionNames()[0] + ", and same map already exists");
                     else
-                        functions.replace(fs);
+                        functions.replaceInLoop(fs);
                     return;
                 }
             }

@@ -1,4 +1,4 @@
-package com.expression_parser_v2_0.console.core;
+package com.expression_parser_v2_0.console.core.types;
 
 public final class ComplexNumber {
     public double real = 0, iota = 0;

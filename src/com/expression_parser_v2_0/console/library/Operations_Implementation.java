@@ -1,8 +1,9 @@
 package com.expression_parser_v2_0.console.library;
 
 import com.expression_parser_v2_0.console.core.*;
+import com.expression_parser_v2_0.console.core.types.*;
 
-public abstract class Operations_Implementation implements operationsInterface {
+public class Operations_Implementation implements operationsInterface {
 
     public NumberName myNumberName;
 
@@ -70,6 +71,21 @@ public abstract class Operations_Implementation implements operationsInterface {
 
     @Override
     public String getString() {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public Variable getVariable() {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public Constant getConstant() {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public Terms getTerms() {
         throw new UnsupportedOperationException("operation not implemented yet");
     }
 
@@ -175,6 +191,186 @@ public abstract class Operations_Implementation implements operationsInterface {
 
     @Override
     public void function(String str1, Set s1) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var1, double d2, int iotaStatus) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(double d1, Variable var2, int iotaStatus) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var1, Variable var2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con1, double d2, int iotaStatus) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(double d1, Constant con2, int iotaStatus) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con1, Constant con2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t1, double d2, int iotaStatus) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(double d1, Terms t2, int iotaStatus) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t1, Terms t2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(ComplexNumber c1, Variable var2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var1, ComplexNumber c2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(ComplexNumber c1, Constant con2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con1, ComplexNumber c2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(ComplexNumber c1, Terms t2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t1, ComplexNumber c2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Set s1, Variable var2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var1, Set s2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Set s1, Constant con2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con1, Set s2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Set s1, Terms t2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t1, Set s2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(String str1, Variable var2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var1, String str2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(String str1, Constant con2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con1, String str2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(String str1, Terms t2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t1, String str2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var1, Constant con2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con1, Variable var2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Variable var1, Terms t2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t1, Variable var2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Constant con1, Terms t2) {
+        throw new UnsupportedOperationException("operation not implemented yet");
+    }
+
+    @Override
+    public void function(Terms t1, Constant con2) {
         throw new UnsupportedOperationException("operation not implemented yet");
     }
 }

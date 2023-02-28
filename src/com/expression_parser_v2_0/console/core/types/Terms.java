@@ -1,6 +1,8 @@
-package com.expression_parser_v2_0.console.core;
+package com.expression_parser_v2_0.console.core.types;
 
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
+import com.expression_parser_v2_0.console.core.Stack;
+
 //class representing terms.
 //a term is an object containing one or more variables or constants
 //in a term, the ordering would not matter as every other term is an independent unit in itself
@@ -13,19 +15,16 @@ import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 //fine just pop it off, who cares.
 
 //experimental
-public class Term {
+public class Terms {
     Stack<Variable> variables = new Stack<>();
-    Stack<constant_term> constants = new Stack<>();
-    Stack<Double> numbers = new Stack<>();
+    Stack<Constant> constants = new Stack<>();
+    Stack<ComplexNumber> numbers = new Stack<>();
 
     public boolean hasNext(int type){
         return switch(type){
-            case TYPE_VARIABLE -> variables.hasNext();
-            case TYPE_ALGEBRAIC_CONSTANT -> constants.hasNext();
-            case TYPE_NUMBER-> numbers.hasNext();
-            default -> {
-                throw new IllegalArgumentException("unknown type");
-            }
+            case VARIABLE -> variables.hasNext();
+            case CONSTANT -> constants.hasNext();
+            default -> numbers.hasNext();
         };
     }
 
@@ -33,11 +32,11 @@ public class Term {
         variables.push(variable);
     }
 
-    public void pushCOnstant(constant_term constant){
+    public void pushCOnstant(Constant constant){
         constants.push(constant);
     }
 
-    public void pushNumber(double number){
+    public void pushNumber(ComplexNumber number){
         numbers.push(number);
     }
 
@@ -45,11 +44,11 @@ public class Term {
         return variables.pop();
     }
 
-    public constant_term getConstant(){
+    public Constant getConstant(){
         return constants.pop();
     }
 
-    public double getNumber(){
+    public ComplexNumber getNumber(){
         return numbers.pop();
     }
 }

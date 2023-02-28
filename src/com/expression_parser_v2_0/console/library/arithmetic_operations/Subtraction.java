@@ -1,7 +1,7 @@
 package com.expression_parser_v2_0.console.library.arithmetic_operations;
 
-import com.expression_parser_v2_0.console.core.ComplexNumber;
 import com.expression_parser_v2_0.console.core.NumberName;
+import com.expression_parser_v2_0.console.core.types.ComplexNumber;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
@@ -62,23 +62,23 @@ public class Subtraction extends Operations_Implementation {
         switch(iotaStatus){
             case IOTA_BOTH :
                 iotaResult = d1 - d2;
-                resultFlag = RESULT_IOTA;
+                resultFlag = IOTA;
                 break;
             case IOTA_NONE :
                 realResult = d1 - d2;
-                resultFlag = RESULT_REAL;
+                resultFlag = REAL;
                 break;
             case IOTA_FIRST :
                 complexResult = new ComplexNumber();
                 complexResult.real = d2 * -1;
                 complexResult.iota = d1;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
             case IOTA_SECOND :
                 complexResult = new ComplexNumber();
                 complexResult.real = d1;
                 complexResult.iota = d2 * -1;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
         }
     }
@@ -89,12 +89,12 @@ public class Subtraction extends Operations_Implementation {
             case IOTA_TRUE :
                 c1.iota -= d2;
                 complexResult = c1;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
             case IOTA_FALSE :
                 c1.real -= d2;
                 complexResult = c1;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
         }
     }
@@ -105,12 +105,12 @@ public class Subtraction extends Operations_Implementation {
             case IOTA_TRUE :
                 c2.iota = d1 - c2.iota;
                 complexResult = c2;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
             case IOTA_FALSE :
                 c2.real = d1 - c2.real;
                 complexResult = c2;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
         }
     }
@@ -120,6 +120,6 @@ public class Subtraction extends Operations_Implementation {
         c2.real = c1.real - c2.real;
         c2.iota = c1.iota - c2.iota;
         complexResult = c2;
-        resultFlag = RESULT_COMPLEX;
+        resultFlag = COMPLEX;
     }
 }

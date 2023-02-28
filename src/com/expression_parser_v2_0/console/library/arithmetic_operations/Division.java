@@ -1,7 +1,7 @@
 package com.expression_parser_v2_0.console.library.arithmetic_operations;
 
-import com.expression_parser_v2_0.console.core.ComplexNumber;
 import com.expression_parser_v2_0.console.core.NumberName;
+import com.expression_parser_v2_0.console.core.types.ComplexNumber;
 import com.expression_parser_v2_0.console.library.Operations_Implementation;
 
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
@@ -63,15 +63,15 @@ public class Division extends Operations_Implementation {
             case IOTA_BOTH :
             case IOTA_NONE :
                 realResult = d1 / d2;
-                resultFlag = RESULT_REAL;
+                resultFlag = REAL;
                 break;
             case IOTA_FIRST :
                 iotaResult = d1 / d2;
-                resultFlag = RESULT_IOTA;
+                resultFlag = IOTA;
                 break;
             case IOTA_SECOND :
                 iotaResult = (d1 / d2) * -1;
-                resultFlag = RESULT_IOTA;
+                resultFlag = IOTA;
                 break;
         }
     }
@@ -84,13 +84,13 @@ public class Division extends Operations_Implementation {
                 c1.real = c1i / d2;
                 c1.iota = c1r / d2 * -1;
                 complexResult = c1;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
             case IOTA_FALSE :
                 c1.real /= d2;
                 c1.iota /= d2;
                 complexResult = c1;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
         }
     }
@@ -103,13 +103,13 @@ public class Division extends Operations_Implementation {
                 c2.real = d1 / c2i;
                 c2.iota = d1 / c2r;
                 complexResult = c2;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
             case IOTA_FALSE :
                 c2.real = d1 / c2r;
                 c2.iota = d1 / c2i * -1;
                 complexResult = c2;
-                resultFlag = RESULT_COMPLEX;
+                resultFlag = COMPLEX;
                 break;
         }
     }
@@ -122,6 +122,6 @@ public class Division extends Operations_Implementation {
         c2.real = real_sol;
         c2.iota = iota_sol;
         complexResult = c2;
-        resultFlag = RESULT_COMPLEX;
+        resultFlag = COMPLEX;
     }
 }

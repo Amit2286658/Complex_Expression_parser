@@ -1,6 +1,7 @@
 package com.expression_parser_v2_0.console.library;
 
 import com.expression_parser_v2_0.console.core.*;
+import com.expression_parser_v2_0.console.core.types.*;
 
 public abstract class Functions_Implementation implements functionsInterface {
 
@@ -65,6 +66,21 @@ public abstract class Functions_Implementation implements functionsInterface {
 
     @Override
     public String getString() {
+        throw new UnsupportedOperationException("function not implemented yet");
+    }
+
+    @Override
+    public Variable getVariable() {
+        throw new UnsupportedOperationException("function not implemented yet");
+    }
+
+    @Override
+    public Constant getConstant() {
+        throw new UnsupportedOperationException("function not implemented yet");
+    }
+
+    @Override
+    public Terms getTerms() {
         throw new UnsupportedOperationException("function not implemented yet");
     }
 

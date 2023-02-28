@@ -45,7 +45,7 @@ public class Factorial extends Operations_Implementation {
         switch(iotaStatus){
             case IOTA_FALSE -> {
                 realResult = factorial((int)d);
-                resultFlag = RESULT_REAL;
+                resultFlag = REAL;
             }
         }
     }

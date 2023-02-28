@@ -66,5 +66,6 @@ public class Expression {
         new geometric_sequence_1(numberName);
         new geometric_sequence_2(numberName);
         new fun_1(numberName);
+        new LinearEquations();
     }
 }

@@ -28,7 +28,7 @@ public class euler_constant extends Operations_Implementation {
 
     @Override
     public int getResultFlag() {
-        return RESULT_REAL;
+        return REAL;
     }
 
     @Override

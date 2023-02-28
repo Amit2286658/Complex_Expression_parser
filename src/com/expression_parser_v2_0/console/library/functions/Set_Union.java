@@ -1,8 +1,8 @@
 package com.expression_parser_v2_0.console.library.functions;
 
-import com.expression_parser_v2_0.console.core.Argument;
 import com.expression_parser_v2_0.console.core.NumberName;
-import com.expression_parser_v2_0.console.core.Set;
+import com.expression_parser_v2_0.console.core.types.Argument;
+import com.expression_parser_v2_0.console.core.types.Set;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
 
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
@@ -23,7 +23,7 @@ public class Set_Union extends Functions_Implementation {
 
     @Override
     public int[] getFunctionMap() {
-        return new int[]{ARGUMENT_ARRAY, ARGUMENT_SET};
+        return new int[]{ARRAY, SET};
     }
 
     @Override
@@ -46,7 +46,7 @@ public class Set_Union extends Functions_Implementation {
         int count = 0;
         set = new Set();
         Set firstSet = arguments[count].getSetArgument();
-        while(firstSet.hasNext(ELEMENT_REAL))
+        while(firstSet.hasNext(REAL))
             this.set.pushReal(firstSet.pullReal());
 
         count++;
@@ -54,11 +54,11 @@ public class Set_Union extends Functions_Implementation {
             union(arguments[count].getSetArgument());
             count++;
         }
-        resultFlag = RESULT_SET;
+        resultFlag = SET;
     }
 
     private void union(Set set){
-        while(set.hasNext(ELEMENT_REAL)){
+        while(set.hasNext(REAL)){
             double real = set.pullReal();
             boolean check = this.set.containsReal(real);
             if (!check)

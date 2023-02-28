@@ -1,0 +1,76 @@
+----------------------------------------------------------------------------------------------------
+multithreading may create some race conditions and throw some
+unexpected errors, for example, if one instance is doing addition, and an another instance
+begins the addition as well but from an another thread, it may create some race conditions
+as there's only one instance for the addition but two instances of parser is trying
+to access it simultaneously. so for such reasons, avoid multithreading for now.
+----------------------------------------------------------------------------------------------------
+since there's an extensive use of StringBuilders and Strings in general,
+I can create a new class specifically tailored for the Strings and StringBuilders,
+for example, a kind of a stack or array of chars, it would be more performant i guess.
+----------------------------------------------------------------------------------------------------
+my keyboard got smacked last night because something happened..., never mind, these keys
+don't work any longer, and I'm keeping it here just so that I don't have to open
+the character map every time.
+
+\ -> reverse slash, for line breaking when you're feeling lazy to just add another println.
+| -> latin iota (is that what it's called?), for char "or" condition.
+|| -> double latin iota(still in doubt), for string "or" condition.
+----------------------------------------------------------------------------------------------------
+The plan is to also support the Algebraic stuffs, it should be easy,
+like this, the expression is composed of numbers, operators and functions. And anything that
+is not one of these should be a variable, they will still be treated as numbers and will be
+evaluated properly by the postfix converter. The interface functions shoud be invoked for 
+variables where the implementing class will be responsible for defining how the variables 
+should work with other literals. They will have their own identifiers to make it easy to 
+work with them, the rules of implied multiplication will apply to them as well.
+For example, 2y will be equivalent to 2*y.
+
+update :
+the postfix converter can now recognize the variables, and all that's now left is to establish
+an evaluation rule for it, the current approach that i'm using uses three classes called 
+variable, constants and terms.
+
+variables : 
+variables are classes to represent variables, they have 3 components called 
+coefficient, exponent and denominator.
+they work as follows, let's say 'y' is certain variable, therefore
+it's identifier will be literal char y, there will be a sign boolean associated with it called isPositive
+to denote whether the current variable is a positive or negative.
+
+Coefficients is a building block, every number contains it, when it's null, the coefficient should return 1.
+for example, 2y, here 2 is the coefficient, but it can be more complicated like this (2+2i)y.
+meaning any type can be a coefficient, the same goes for all the exponents and denominators. 
+except for the part that the exponents and denominators can also be a term.
+like 2^(2+2i+sin(yi)) or 2/(2+(9y)^2) or "hello"y. So basically these fundamental units are compatible with 
+all types.
+So why can't the coefficients also be a term? because then they'll be factorized. for example
+(2^2 + 2a + a^2)y => y2^2 + 2ay + ya^2 and stuff like that.
+the same is applicable to the exponents and denominators, their conflict canot be resolved that easily.
+
+Constats :
+Constants are like the numerical versions of the variables, due to the fact that it does not have any
+identifier like char, instead it has literal value, like 2 or 2+2i.
+for example 2^(z+y) or 2+2i/(xy){2+2i is a literal complex here and not in a a string form}.
+so it should be clear by now why we need a new class for this, even though it has literal values
+it can still contains exponents and denominators that are variables or terms or even constants.
+for example c1 = 2/2^(y+z) where c1 is a constant with a literal value of 2, and has denominator 
+which is also a constant that is c2 = 2^(y+z), this constant c2 has expoenent that is a term 
+containing two variables z and y.
+the relationship can get very complicated.
+
+term :
+just a collection of two or more variables or constants, and has no other data or function. it's 
+just a container class. for example, 2+3^(z+y)+8i, etc.
+
+i was also thinking about implementing some kind of node graph where the variables or constants
+would be a node and their edge would define their relationship, but honestly i have no idea where to
+even begin in this territory.
+
+update :
+ever since i wanted to introduce three new types, the flaws of the parser began to shine.
+it would require a major overhaul of the codebase just to add a new type... it's so troublesome.
+so now i'm going to write a new expression resolver that is more generic, and relies on types
+that are defined outside, it would make everyhting so much more leaner. more work but it will be worth it.
+
+and since, now i am more fluent in regexes, i'm going to use that a lot.

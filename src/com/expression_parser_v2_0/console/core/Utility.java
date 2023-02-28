@@ -3,6 +3,8 @@ package com.expression_parser_v2_0.console.core;
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 import static com.expression_parser_v2_0.console.core.tokens.complex_token;
 
+import com.expression_parser_v2_0.console.core.types.*;
+
 public class Utility {
     //when true, the entered angle will be converted into the radians since
     //that's the default accepting parameter
@@ -41,7 +43,7 @@ public class Utility {
         if (firstIteration)
             builder.append('{');
 
-        while(set.hasNext(ELEMENT_REAL)) {
+        while(set.hasNext(REAL)) {
             double real = set.pullReal();
             if (real % 1 == 0){
                 String[] parts = (real + "").split("\\.");
@@ -60,7 +62,7 @@ public class Utility {
                 builder.append(real).append(',');
         }
 
-        while(set.hasNext(ELEMENT_IOTA)) {
+        while(set.hasNext(IOTA)) {
             double iota = set.pullIota();
             if (iota % 1 == 0){
                 String[] parts = (iota + "").split("\\.");
@@ -80,19 +82,22 @@ public class Utility {
             builder.append(',');
         }
 
-        while(set.hasNext(ELEMENT_COMPLEX)) {
+        while(set.hasNext(COMPLEX)) {
             ComplexNumber cn = set.pullComplex();
             builder.append(convertComplexToString(cn, false));
             builder.append(',');
         }
 
-        while(set.hasNext(ELEMENT_STRING))
+        while(set.hasNext(STRING))
             builder.append('"').append(set.pullString()).append('"').append(',');
 
-        while(set.hasNext(ELEMENT_SET))
+        while(set.hasNext(SET))
             builder.append('{').append(convertSetToString(set.pullSet(), false))
                     .append('}').append(',');
-
+        
+        while(set.hasNext(VARIABLE))
+            builder.append(set.pullVar().getIdentifier()).append(',');
+        
         int last_pos = builder.length() - 1;
         if (last_pos != -1 && builder.charAt(last_pos) == ',')
             builder.deleteCharAt(last_pos);

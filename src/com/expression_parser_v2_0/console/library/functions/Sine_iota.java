@@ -1,8 +1,8 @@
 package com.expression_parser_v2_0.console.library.functions;
 
-import com.expression_parser_v2_0.console.core.Argument;
-import com.expression_parser_v2_0.console.core.ComplexNumber;
 import com.expression_parser_v2_0.console.core.NumberName;
+import com.expression_parser_v2_0.console.core.types.Argument;
+import com.expression_parser_v2_0.console.core.types.ComplexNumber;
 import com.expression_parser_v2_0.console.library.Functions_Implementation;
 
 import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
@@ -26,7 +26,7 @@ public class Sine_iota extends Functions_Implementation {
 
     @Override
     public int[] getFunctionMap() {
-        return new int[]{ARGUMENT_IOTA};
+        return new int[]{IOTA};
     }
 
     @Override
@@ -58,6 +58,6 @@ public class Sine_iota extends Functions_Implementation {
     public void function(Argument[] arguments, int id) {
         real = Math.sin(getAngleMode() == ANGLE_MODE_RADIAN ? arguments[0].getIotaArgument() :
                 Math.toRadians(arguments[0].getIotaArgument()));
-        resultFlag = RESULT_REAL;
+        resultFlag = REAL;
     }
 }
