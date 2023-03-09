@@ -9,7 +9,8 @@ public class tokens {
             operation_token = '_',
             pointer_token = '#',
             variable_token = '?',
-            string_token = '"';
+            string_token = '"',
+            multiplication_token = '*';
 
     public static final char empty_token = '۪';
 

@@ -17,6 +17,7 @@ public class Addition extends Operations_Implementation {
     double iotaResult;
     String resultString;
     Set resultSet;
+    Variable resultVar;
 
     public Addition(NumberName numberName) {
         super(numberName);
@@ -70,6 +71,11 @@ public class Addition extends Operations_Implementation {
     @Override
     public Set getSet() {
         return resultSet;
+    }
+
+    @Override
+    public Variable getVariable() {
+        return resultVar;
     }
 
     @Override
@@ -235,33 +241,19 @@ public class Addition extends Operations_Implementation {
     }
 
     @Override
-    public void function() {
-        throw new ExpressionException("type requires two operands, however none were found");
-    }
-
-    @Override
-    public void function(double d, int iotaStatus) {
-        throw new ExpressionException("type requires two operands, however only one was found");
-    }
-
-    @Override
-    public void function(ComplexNumber cn) {
-        throw new ExpressionException("type requires two operands, however only one was found");
-    }
-
-    @Override
-    public void function(Set s) {
-        throw new ExpressionException("type requires two operands, however only one was found");
-    }
-
-    @Override
-    public void function(String str) {
-        throw new ExpressionException("type requires two operands, however only one was found");
-    }
-
-    @Override
     public void function(double d1, Variable var2, int iotaStatus) {
         System.out.println("num = " + d1 + "\n" + "var = " + var2.getIdentifier());
         super.function(d1, var2, iotaStatus);
+    }
+
+    @Override
+    public void function(Variable var1, Variable var2) {
+        double coefs = 0;
+        if (var1.coefficient_status == REAL && var2.coefficient_status == REAL)
+            coefs = ((Integer)var1.getCoefficient()) + 
+            ((Integer)var1.getCoefficient());
+        var1.setCoefficient(new ComplexNumber(coefs, 0));
+        resultVar = var1;
+        resultFlag = VARIABLE;
     }
 }

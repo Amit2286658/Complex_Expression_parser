@@ -94,16 +94,10 @@ public final class ExpressionParser {
         // transfroation block
         {
             for (int i = 0; i < strs.length; i += 2) {
-                strs[i] = strs[i].replaceAll("\\)\\(", ")*(");
-                strs[i] = strs[i].replaceAll("}\\{", "}*{");
-                strs[i] = strs[i].replaceAll("\\+\\+", "\\+");
-                strs[i] = strs[i].replaceAll("\\+-", "-");
-                strs[i] = strs[i].replaceAll("-\\+", "-");
-                strs[i] = strs[i].replaceAll("--", "\\+");
-                strs[i] = strs[i].replaceAll("i\\(", "i*(");
-                strs[i] = strs[i].replaceAll("i\\{", "i*{");
-                strs[i] = strs[i].replaceAll("\\)\\{", ")*{");
-                strs[i] = strs[i].replaceAll("}\\(", "}*(");
+                strs[i] = strs[i].replaceAll("\\++", "\\+");
+                strs[i] = strs[i].replaceAll("\\+-", "\\-");
+                strs[i] = strs[i].replaceAll("\\-+", "\\-");
+                strs[i] = strs[i].replaceAll("\\--", "\\+");
             }
         }
         Stack<String> fn_names = new Stack<>();
@@ -309,14 +303,14 @@ public final class ExpressionParser {
                 char a = (i != expression.length() - 1) ? expression.charAt(i + 1) : 0;
                 if ((p + "").matches("[i)}0-9a-zA-Z&&[^eE]]") &&
                         getCharAsAnOperator(p) == null)
-                    builder.append('*');
+                    builder.append(multiplication_token);
                 builder.append(c);
                 if ((a + "").matches("[0-9@({]"))
-                    builder.append('*');
+                    builder.append(multiplication_token);
             } else if ((c + "").matches("[0-9]")) {
                 char p = (i != 0) ? expression.charAt(i - 1) : 0;
                 if ((p + "").matches("[iI]"))
-                    builder.append('*');
+                    builder.append(multiplication_token);
                 builder.append(c);
             } else
                 builder.append(c);
@@ -377,16 +371,16 @@ public final class ExpressionParser {
 
             if (Character.isDigit(c)) {
                 if (p == ')' || p == '}' || (p == string_token && stringCounter == 0)) {
-                    builder.append('*');
+                    builder.append(multiplication_token);
                 }
                 builder.append(c);
                 if ((a == '(' || a == '{') || (a == string_token && stringCounter == 0)
                         || a == function_token) {
-                    builder.append('*');
+                    builder.append(multiplication_token);
                 }
             } else if (c == function_token) {
                 if (p == ')' || p == '}' || p == '"')
-                    builder.append('*');
+                    builder.append(multiplication_token);
                 builder.append(c);
             } else {
                 builder.append(c);
@@ -1076,6 +1070,13 @@ public final class ExpressionParser {
                 "" -> "*"
                 "( -> "*(
                 "{ -> "*{
+                )( -> )*(
+                }{ -> }*{
+                i( -> i*(
+                i{ -> i*{
+                ){ -> )*{
+                }( -> }*(
+                
              */
 
             // the occuring of two double quotes next to each other can be handled
@@ -1088,7 +1089,7 @@ public final class ExpressionParser {
                 if (!isInString && (i != 0)) {
                     char p = expression.charAt(i - 1);
                     if ((p + "").matches("[i)}]")) {
-                        builder.append('*');
+                        builder.append(multiplication_token);
                     }
                 }
                 isInString = !isInString;
@@ -1097,7 +1098,7 @@ public final class ExpressionParser {
                 if (!isInString && (i != expression.length() - 1)) {
                     char a = expression.charAt(i + 1);
                     if ((a + "").matches("[\"({]"))
-                        builder.append('*');
+                        builder.append(multiplication_token);
                 }
                 continue;
             }
@@ -1109,6 +1110,13 @@ public final class ExpressionParser {
 
             char p = (i != 0) ? expression.charAt(i - 1) : 0;
             char a = (i != expression.length() - 1) ? expression.charAt(i + 1) : 0;
+
+            if ((c + "").matches("[)i}]") && 
+                    (a + "").matches("[({]")){
+                builder.append(c);
+                builder.append(multiplication_token);
+                continue;
+            }
 
             operationsInterface ops = getCharAsAnOperator(c);
             if (ops != null) {
@@ -1141,7 +1149,11 @@ public final class ExpressionParser {
         }
     }
 
-    // todo : string messages are outdated, need to update it.
+    //todo : string messages are outdated, need to update it.
+    //just forget about it, i'm not touching this bamboozling pile of mess
+    //this whole function is just a huge headache and i hope i don't have to touch it again.
+    //i'll rather get rid of this functionality altogether than having to deal 
+    //with this pile of shit i wrote
     private String getImplicitExp(operationsInterface opInt, char left, char right) {
         // no need to check for either a dot '.', or exponent ';', in each case,
         // they must end with a number, or else they'll be invalid.
@@ -1464,7 +1476,7 @@ public final class ExpressionParser {
                                 break;
                             case TYPE_POST:
                             case TYPE_CONSTANT:
-                                builder.append("*");
+                                builder.append(multiplication_token);
                                 break;
                         }
                     }
@@ -1503,7 +1515,7 @@ public final class ExpressionParser {
                                 break;
                             case TYPE_POST:
                             case TYPE_CONSTANT:
-                                builder.append("*");
+                                builder.append(multiplication_token);
                                 break;
                         }
                     }
@@ -1523,7 +1535,26 @@ public final class ExpressionParser {
 
         if(left == null && right == null){
             whichOperation.function();
-        } else {
+        }else if (left == null || right == null) {
+            DispatchParcel local_parcel = (left == null) ? right : left;
+            switch(local_parcel.type){
+                case COMPLEX -> {
+                    double real = local_parcel.number.real;
+                    double iota = local_parcel.number.iota;
+                    if ((real != 0 && iota != 0) || (real == 0 && iota == 0)){
+                        whichOperation.function(local_parcel.number);
+                        break;
+                    }
+                    whichOperation.function(real!=0?real:iota, 
+                    real!=0?IOTA_FALSE:IOTA_TRUE);
+                }
+                case SET -> whichOperation.function(local_parcel.set);
+                case STRING -> whichOperation.function(local_parcel.string);
+                case VARIABLE -> whichOperation.function(local_parcel.var);
+                case CONSTANT -> whichOperation.function(local_parcel.con);
+                case TERM -> whichOperation.function(local_parcel.term);
+            }
+        }else {
             top :
             switch(left.type){
                 case COMPLEX -> {
@@ -2000,6 +2031,8 @@ public final class ExpressionParser {
         return opInt;
     }
 
+    //sort result function does not currently support the variables, constants or the terms.
+    //this function only exists to make the output pretty
     private String SortResult(Stack<String> result) {
         ComplexNumber cn = null;
         boolean isComplex = false;

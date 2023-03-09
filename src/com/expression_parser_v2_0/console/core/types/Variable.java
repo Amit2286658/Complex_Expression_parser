@@ -7,9 +7,9 @@ public class Variable {
     private char identifier;
     public boolean isPositive;
     public int 
-        coefficient_status = -1,
-        exponent_status = -1,
-        denominator_status = -1;
+        coefficient_status = REAL,
+        exponent_status = REAL,
+        denominator_status = REAL;
     private Object 
         coefficient = 1,
         exponent = 1,

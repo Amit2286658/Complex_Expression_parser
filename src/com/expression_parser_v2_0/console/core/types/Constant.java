@@ -6,9 +6,9 @@ import static com.expression_parser_v2_0.console.core.CONSTANTS.*;
 public class Constant {
     private ComplexNumber cn;
     public int 
-        coefficient_status = -1,
-        exponent_status = -1,
-        denominator_status = -1;
+        coefficient_status = REAL,
+        exponent_status = REAL,
+        denominator_status = REAL;
     private Object 
         coefficient,
         exponent = 1,

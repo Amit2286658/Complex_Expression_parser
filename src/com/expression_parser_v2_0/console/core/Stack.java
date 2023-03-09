@@ -95,7 +95,7 @@ public final class Stack<T> {
         return pointer == -1;
     }
 
-    public int getLength(){
+    public int  getLength(){
         return pointer + 1;
     }
 
